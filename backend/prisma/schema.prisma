@@ -1,0 +1,155 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String          @id @default(uuid())
+  email           String          @unique
+  password_hash   String
+  role            Role
+  name            String
+  created_at      DateTime        @default(now())
+  
+  ownerProfiles   OwnerProfile[]
+  staffProfiles   StaffProfile[]
+  clientProfiles  ClientProfile[]
+}
+
+enum Role {
+  SUPERADMIN
+  OWNER
+  STAFF
+  CLIENT
+}
+
+model Business {
+  id                   String         @id @default(uuid())
+  name                 String
+  slug                 String         @unique
+  phone                String?
+  timezone             String         @default("UTC")
+  slot_interval_minutes Int            @default(30)
+  settings_json        Json?
+  created_at           DateTime       @default(now())
+  
+  ownerProfiles        OwnerProfile[]
+  staffProfiles        StaffProfile[]
+  clientProfiles       ClientProfile[]
+  services             Service[]
+  appointments         Appointment[]
+}
+
+model OwnerProfile {
+  id           String         @id @default(uuid())
+  user_id      String
+  user         User           @relation(fields: [user_id], references: [id])
+  business_id  String
+  business     Business       @relation(fields: [business_id], references: [id])
+  is_active    Boolean        @default(true)
+  created_at   DateTime       @default(now())
+
+  @@unique([user_id, business_id])
+}
+
+model StaffProfile {
+  id           String         @id @default(uuid())
+  user_id      String
+  user         User           @relation(fields: [user_id], references: [id])
+  business_id  String
+  business     Business       @relation(fields: [business_id], references: [id])
+  is_active    Boolean        @default(true)
+  created_at   DateTime       @default(now())
+
+  services     StaffService[]
+  schedules    Schedule[]
+  timeOffs     TimeOff[]
+  appointments Appointment[]
+
+  @@unique([user_id, business_id])
+}
+
+model ClientProfile {
+  id           String         @id @default(uuid())
+  user_id      String
+  user         User           @relation(fields: [user_id], references: [id])
+  business_id  String
+  business     Business       @relation(fields: [business_id], references: [id])
+  notes        String?        @db.Text
+  created_at   DateTime       @default(now())
+
+  appointments Appointment[]
+
+  @@unique([user_id, business_id])
+}
+
+model Service {
+  id           String         @id @default(uuid())
+  business_id  String
+  business     Business       @relation(fields: [business_id], references: [id])
+  name         String
+  duration_min Int            @default(30)
+  price        Decimal        @db.Decimal(10, 2)
+  is_active    Boolean        @default(true)
+
+  staff        StaffService[]
+  appointments Appointment[]
+}
+
+model StaffService {
+  staff_id   String
+  service_id String
+  staff      StaffProfile   @relation(fields: [staff_id], references: [id])
+  service    Service        @relation(fields: [service_id], references: [id])
+
+  @@id([staff_id, service_id])
+}
+
+model Schedule {
+  id         String         @id @default(uuid())
+  staff_id   String
+  staff      StaffProfile   @relation(fields: [staff_id], references: [id])
+  day_of_week Int           // 0 = Sunday, 1 = Monday, etc.
+  start_time String         // e.g. "09:00"
+  end_time   String         // e.g. "17:00"
+}
+
+model TimeOff {
+  id                 String         @id @default(uuid())
+  staff_id           String
+  staff              StaffProfile   @relation(fields: [staff_id], references: [id])
+  start_datetime_utc DateTime
+  end_datetime_utc   DateTime
+  reason             String?
+}
+
+enum AppointmentStatus {
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+model Appointment {
+  id                 String            @id @default(uuid())
+  business_id        String
+  business           Business          @relation(fields: [business_id], references: [id])
+  
+  client_id          String?
+  client             ClientProfile?    @relation(fields: [client_id], references: [id])
+  
+  staff_id           String
+  staff              StaffProfile      @relation(fields: [staff_id], references: [id])
+  
+  service_id         String
+  service            Service           @relation(fields: [service_id], references: [id])
+  
+  start_datetime_utc DateTime
+  end_datetime_utc   DateTime
+  status             AppointmentStatus @default(CONFIRMED)
+  
+  @@index([staff_id, start_datetime_utc])
+}
