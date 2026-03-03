@@ -48,15 +48,15 @@ const handleLogin = async () => {
           <svg class="w-8 h-8 relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4" /></svg>
         </div>
         
-        <h2 class="font-display text-2xl tracking-[0.2em] uppercase font-bold mb-2 text-white">System Core</h2>
-        <p class="text-textMuted text-xs font-light tracking-widest uppercase mb-10 text-center">Superadmin Override Protocol</p>
+        <h2 class="font-display text-2xl tracking-[0.2em] uppercase font-bold mb-2 text-white">Núcleo del sistema</h2>
+        <p class="text-textMuted text-xs font-light tracking-widest uppercase mb-10 text-center">Protocolo de acceso superadmin</p>
         
         <form @submit.prevent="handleLogin" class="w-full space-y-8">
           <div class="relative group">
-            <input v-model="email" type="email" required class="input-premium bg-transparent border-b-white/20 border-x-0 border-t-0 hover:border-b-primary focus:border-b-primary focus:bg-white/5 px-0 pb-2 text-center" placeholder="AUTHORIZATION IDENTITY" />
+            <input v-model="email" type="email" required class="input-premium bg-transparent border-b-white/20 border-x-0 border-t-0 hover:border-b-primary focus:border-b-primary focus:bg-white/5 px-0 pb-2 text-center" placeholder="IDENTIDAD DE ACCESO" />
           </div>
           <div class="relative group mt-6">
-            <input v-model="password" type="password" required class="input-premium bg-transparent border-b-white/20 border-x-0 border-t-0 hover:border-b-primary focus:border-b-primary focus:bg-white/5 px-0 pb-2 text-center" placeholder="SECURITY KEY" />
+            <input v-model="password" type="password" required class="input-premium bg-transparent border-b-white/20 border-x-0 border-t-0 hover:border-b-primary focus:border-b-primary focus:bg-white/5 px-0 pb-2 text-center" placeholder="CLAVE DE SEGURIDAD" />
           </div>
           
           <div v-if="errorMsg" class="text-primary text-xs tracking-widest uppercase p-4 border border-primary/20 bg-primary/5 text-center">
@@ -64,8 +64,8 @@ const handleLogin = async () => {
           </div>
           
           <button type="submit" :disabled="loading" class="btn-primary w-full mt-12 py-5 tracking-[0.3em]">
-            <span v-if="!loading">Execute Override</span>
-            <span v-else class="animate-pulse">Authenticating</span>
+            <span v-if="!loading">Iniciar sesión</span>
+            <span v-else class="animate-pulse">Autenticando</span>
           </button>
         </form>
       </div>

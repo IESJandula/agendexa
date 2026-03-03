@@ -51,7 +51,16 @@ h6 {
 }
 
 .input-premium::placeholder {
-  color: #4a4a4a;
+  color: #9fb8b6;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .btn-primary {

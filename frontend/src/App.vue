@@ -15,11 +15,11 @@
         <router-link to="/" class="font-display font-semibold text-lg tracking-wide hover:text-primary transition-colors">AGENDEXA</router-link>
       </div>
       <div class="flex gap-6 text-sm font-medium items-center">
-        <router-link to="/book/pelu" class="text-primary hover:text-white transition-colors border border-primary/30 px-3 py-1 rounded-sm text-xs tracking-widest uppercase">Book Now (Demo)</router-link>
+        <router-link to="/book/pelu" class="text-primary hover:text-white transition-colors border border-primary/30 px-3 py-1 rounded-sm text-xs tracking-widest uppercase">Reservar ahora (Demo)</router-link>
         <span class="w-px h-4 bg-white/10 mx-2"></span>
-        <router-link to="/superadmin/login" class="text-textMuted hover:text-white transition-colors">Superadmin</router-link>
-        <router-link to="/owner/login" class="text-textMuted hover:text-white transition-colors">Business Login</router-link>
-        <router-link to="/staff/login" class="text-textMuted hover:text-white transition-colors">Staff Login</router-link>
+        <router-link to="/superadmin/login" class="text-textMuted hover:text-white transition-colors">Superadministración</router-link>
+        <router-link to="/owner/login" class="text-textMuted hover:text-white transition-colors">Acceso negocio</router-link>
+        <router-link to="/staff/login" class="text-textMuted hover:text-white transition-colors">Acceso personal</router-link>
       </div>
     </nav>
 

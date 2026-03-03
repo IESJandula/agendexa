@@ -16,10 +16,10 @@ const currentYear = ref(today.getFullYear());
 const currentMonth = ref(today.getMonth()); // 0-indexed
 
 const monthNames = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
+  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
 ];
-const dayNames = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
+const dayNames = ['DO', 'LU', 'MA', 'MI', 'JU', 'VI', 'SA'];
 
 const currentMonthName = computed(() => monthNames[currentMonth.value]);
 

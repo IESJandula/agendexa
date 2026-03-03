@@ -9,13 +9,13 @@ const token = localStorage.getItem('token') || '';
 
 // Schedule related
 const defaultSchedule = [
-  { day_of_week: 1, name: 'Monday', active: true, start_time: '09:00', end_time: '18:00' },
-  { day_of_week: 2, name: 'Tuesday', active: true, start_time: '09:00', end_time: '18:00' },
-  { day_of_week: 3, name: 'Wednesday', active: true, start_time: '09:00', end_time: '18:00' },
-  { day_of_week: 4, name: 'Thursday', active: true, start_time: '09:00', end_time: '18:00' },
-  { day_of_week: 5, name: 'Friday', active: true, start_time: '09:00', end_time: '18:00' },
-  { day_of_week: 6, name: 'Saturday', active: false, start_time: '10:00', end_time: '14:00' },
-  { day_of_week: 0, name: 'Sunday', active: false, start_time: '10:00', end_time: '14:00' }
+  { day_of_week: 1, name: 'Lunes', active: true, start_time: '09:00', end_time: '18:00' },
+  { day_of_week: 2, name: 'Martes', active: true, start_time: '09:00', end_time: '18:00' },
+  { day_of_week: 3, name: 'Miércoles', active: true, start_time: '09:00', end_time: '18:00' },
+  { day_of_week: 4, name: 'Jueves', active: true, start_time: '09:00', end_time: '18:00' },
+  { day_of_week: 5, name: 'Viernes', active: true, start_time: '09:00', end_time: '18:00' },
+  { day_of_week: 6, name: 'Sábado', active: false, start_time: '10:00', end_time: '14:00' },
+  { day_of_week: 0, name: 'Domingo', active: false, start_time: '10:00', end_time: '14:00' }
 ];
 
 const scheduleForm = ref(JSON.parse(JSON.stringify(defaultSchedule)));
@@ -63,7 +63,7 @@ const fetchProfile = async () => {
 const saveSchedule = async () => {
   if (!staffProfile.value?.id) return;
   
-  saveMsg.value = 'Saving...';
+  saveMsg.value = 'Guardando...';
   const activeSchedules = scheduleForm.value
     .filter((day: any) => day.active)
     .map((day: any) => ({
@@ -83,14 +83,14 @@ const saveSchedule = async () => {
     });
 
     if (res.ok) {
-      saveMsg.value = 'Schedule successfully updated!';
+      saveMsg.value = '¡Horario actualizado correctamente!';
       setTimeout(() => saveMsg.value = '', 3000);
       await fetchProfile();
     } else {
-      saveMsg.value = 'Failed to save schedule.';
+      saveMsg.value = 'No se pudo guardar el horario.';
     }
   } catch (error) {
-    saveMsg.value = 'Error saving schedule.';
+    saveMsg.value = 'Error al guardar el horario.';
   }
 };
 
@@ -100,27 +100,34 @@ const handleLogout = () => {
   router.push('/staff/login');
 };
 
+const translateStatus = (status: string) => {
+  if (status === 'CONFIRMED') return 'Confirmada';
+  if (status === 'COMPLETED') return 'Completada';
+  if (status === 'CANCELLED') return 'Cancelada';
+  return status;
+};
+
 const formatTime = (timeStr: string) => {
   const date = new Date(timeStr);
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 };
 const formatDate = (dateStr: string) => {
-  return new Date(dateStr).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+  return new Date(dateStr).toLocaleDateString('es-ES', { weekday: 'short', month: 'short', day: 'numeric' });
 };
 </script>
 
 <template>
-  <div class="min-h-screen bg-bgDark text-white font-sans flex flex-col relative overflow-hidden">
+  <div class="min-h-screen bg-background text-white font-sans flex flex-col relative overflow-hidden">
     <!-- Navbar -->
     <header class="border-b border-white/5 bg-surface/50 backdrop-blur-md relative z-10">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <div class="flex items-center gap-4">
-          <h1 class="font-display font-semibold text-xl tracking-wide">STAFF PORTAL</h1>
+          <h1 class="font-display font-semibold text-xl tracking-wide">PORTAL DEL PERSONAL</h1>
           <span class="w-px h-6 bg-white/10"></span>
-          <span class="text-sm text-textMuted" v-if="staffProfile">Welcome, {{ staffProfile.user.name }}</span>
+          <span class="text-sm text-textMuted" v-if="staffProfile">Bienvenido/a, {{ staffProfile.user.name }}</span>
         </div>
         <button @click="handleLogout" class="text-sm font-medium text-textMuted hover:text-white transition-colors">
-          SIGN OUT
+          CERRAR SESIÓN
         </button>
       </div>
     </header>
@@ -133,13 +140,13 @@ const formatDate = (dateStr: string) => {
             @click="activeTab = 'appointments'"
             :class="[activeTab === 'appointments' ? 'border-primary text-primary' : 'border-transparent text-textMuted hover:text-white hover:border-white/30', 'whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm tracking-wide uppercase transition-colors']"
           >
-            My Appointments
+            Mis citas
           </button>
           <button 
             @click="activeTab = 'schedule'"
             :class="[activeTab === 'schedule' ? 'border-primary text-primary' : 'border-transparent text-textMuted hover:text-white hover:border-white/30', 'whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm tracking-wide uppercase transition-colors']"
           >
-            Working Hours
+            Horario laboral
           </button>
         </nav>
       </div>
@@ -147,15 +154,15 @@ const formatDate = (dateStr: string) => {
       <!-- Tab Content: Appointments -->
       <div v-if="activeTab === 'appointments'" class="animate-fade-in-up">
         <div class="flex justify-between items-center mb-6">
-          <h2 class="font-display text-2xl font-semibold">Upcoming Bookings</h2>
+          <h2 class="font-display text-2xl font-semibold">Próximas reservas</h2>
         </div>
         
         <div v-if="!staffProfile.appointments || staffProfile.appointments.length === 0" class="text-center py-16 bg-surface/30 border border-white/5 rounded-lg backdrop-blur-sm">
           <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/5 text-textMuted mb-4">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
           </div>
-          <h3 class="text-lg font-medium text-white mb-1">No upcoming appointments</h3>
-          <p class="text-sm text-textMuted">You have a clear schedule. Great time to catch up!</p>
+          <h3 class="text-lg font-medium text-white mb-1">No hay próximas citas</h3>
+          <p class="text-sm text-textMuted">Tu agenda está despejada. ¡Buen momento para adelantar tareas!</p>
         </div>
         
         <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -165,7 +172,7 @@ const formatDate = (dateStr: string) => {
                 <p class="text-xs font-semibold text-primary uppercase tracking-wider mb-1">{{ formatDate(appt.start_datetime_utc) }}</p>
                 <h3 class="font-medium text-white text-lg">{{ formatTime(appt.start_datetime_utc) }} - {{ formatTime(appt.end_datetime_utc) }}</h3>
               </div>
-              <span class="px-2 py-1 text-xs font-medium bg-white/10 rounded text-textMuted border border-white/5">{{ appt.status }}</span>
+              <span class="px-2 py-1 text-xs font-medium bg-white/10 rounded text-textMuted border border-white/5">{{ translateStatus(appt.status) }}</span>
             </div>
             
             <div class="space-y-3">
@@ -184,7 +191,7 @@ const formatDate = (dateStr: string) => {
                 </div>
                 <div>
                   <p class="text-sm font-medium text-white">{{ appt.service.name }}</p>
-                  <p class="text-xs text-textMuted">{{ appt.service.duration_min }} mins</p>
+                  <p class="text-xs text-textMuted">{{ appt.service.duration_min }} min</p>
                 </div>
               </div>
             </div>
@@ -196,8 +203,8 @@ const formatDate = (dateStr: string) => {
       <div v-if="activeTab === 'schedule'" class="animate-fade-in-up">
         <div class="bg-surface border border-white/5 rounded-xl shadow-2xl p-8 max-w-4xl mx-auto backdrop-blur-sm">
           <div class="mb-6">
-            <h2 class="font-display text-2xl font-semibold mb-2">Weekly Availability</h2>
-            <p class="text-textMuted text-sm">Define your working hours. The booking system uses this to calculate exact grid availability for your clients.</p>
+            <h2 class="font-display text-2xl font-semibold mb-2">Disponibilidad semanal</h2>
+            <p class="text-textMuted text-sm">Define tu horario laboral. El sistema de reservas usa esto para calcular la disponibilidad exacta para tus clientes.</p>
           </div>
 
           <div class="space-y-4">
@@ -209,26 +216,26 @@ const formatDate = (dateStr: string) => {
               
               <div class="flex-1 flex gap-4 items-center" :class="{ 'opacity-50 pointer-events-none': !day.active }">
                 <div class="flex-1">
-                  <label class="sr-only">Start Time</label>
+                  <label class="sr-only">Hora de inicio</label>
                   <input type="time" v-model="day.start_time" class="block w-full rounded-md border-white/10 bg-surface px-3 py-2 text-white shadow-sm focus:border-primary focus:ring-primary sm:text-sm" />
                 </div>
-                <span class="text-textMuted text-sm">to</span>
+                <span class="text-textMuted text-sm">a</span>
                 <div class="flex-1">
-                  <label class="sr-only">End Time</label>
+                  <label class="sr-only">Hora de fin</label>
                   <input type="time" v-model="day.end_time" class="block w-full rounded-md border-white/10 bg-surface px-3 py-2 text-white shadow-sm focus:border-primary focus:ring-primary sm:text-sm" />
                 </div>
               </div>
               <div class="w-24 text-right">
-                <span v-if="!day.active" class="text-xs uppercase tracking-wider text-textMuted font-medium">Off</span>
-                <span v-else class="text-xs uppercase tracking-wider text-primary font-medium">Active</span>
+                <span v-if="!day.active" class="text-xs uppercase tracking-wider text-textMuted font-medium">Libre</span>
+                <span v-else class="text-xs uppercase tracking-wider text-primary font-medium">Activo</span>
               </div>
             </div>
           </div>
           
           <div class="mt-8 pt-6 border-t border-white/10 flex items-center justify-between">
-            <p class="text-sm" :class="saveMsg.includes('Error') || saveMsg.includes('Failed') ? 'text-accent' : 'text-primary'">{{ saveMsg }}</p>
+            <p class="text-sm" :class="saveMsg.includes('Error') || saveMsg.includes('No se pudo') ? 'text-red-200' : 'text-primary'">{{ saveMsg }}</p>
             <button @click="saveSchedule" class="px-6 py-2.5 bg-primary text-black font-semibold uppercase tracking-widest text-sm hover:bg-white transition-colors duration-300">
-              Save Schedule
+              Guardar horario
             </button>
           </div>
         </div>

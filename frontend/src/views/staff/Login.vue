@@ -20,35 +20,35 @@ const handleLogin = async () => {
     
     if (res.ok) {
       if (data.user.role !== 'STAFF') {
-        errorMsg.value = 'Unauthorized. You are not a Staff member.';
+        errorMsg.value = 'No autorizado. No eres miembro del personal.';
         return;
       }
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       router.push('/staff/dashboard');
     } else {
-      errorMsg.value = data.error || 'Login failed';
+      errorMsg.value = data.error || 'Error al iniciar sesión';
     }
   } catch (err) {
-    errorMsg.value = 'Network error. Please try again.';
+    errorMsg.value = 'Error de red. Inténtalo de nuevo.';
   }
 };
 </script>
 
 <template>
-  <div class="min-h-screen bg-bgDark flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
+  <div class="min-h-screen bg-background flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
     <!-- Dark decorative background -->
     <div class="absolute inset-0 pointer-events-none">
       <div class="absolute -top-[10%] -right-[10%] w-[50%] h-[50%] bg-primary/20 blur-[150px] rounded-full mix-blend-screen"></div>
-      <div class="absolute -bottom-[10%] -left-[10%] w-[50%] h-[50%] bg-accent/10 blur-[150px] rounded-full mix-blend-screen"></div>
+      <div class="absolute -bottom-[10%] -left-[10%] w-[50%] h-[50%] bg-primary/10 blur-[150px] rounded-full mix-blend-screen"></div>
     </div>
 
     <div class="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
       <h2 class="mt-6 text-center text-4xl font-display font-semibold tracking-wide text-white">
-        Staff Portal
+        Portal del personal
       </h2>
       <p class="mt-2 text-center text-sm text-textMuted font-light">
-        Manage your schedule and appointments
+        Gestiona tu horario y tus citas
       </p>
     </div>
 
@@ -57,7 +57,7 @@ const handleLogin = async () => {
         <form class="space-y-6" @submit.prevent="handleLogin">
           <div>
             <label for="email" class="block text-xs font-semibold uppercase tracking-widest text-textMuted mb-2">
-              Email address
+              Correo electrónico
             </label>
             <div class="mt-1">
               <input 
@@ -73,7 +73,7 @@ const handleLogin = async () => {
 
           <div>
             <label for="password" class="block text-xs font-semibold uppercase tracking-widest text-textMuted mb-2">
-              Password
+              Contraseña
             </label>
             <div class="mt-1">
               <input 
@@ -87,22 +87,22 @@ const handleLogin = async () => {
             </div>
           </div>
 
-          <div v-if="errorMsg" class="text-accent text-sm text-center p-3 rounded-md bg-accent/10 border border-accent/20">
+          <div v-if="errorMsg" class="text-red-100 text-sm text-center p-3 rounded-md bg-red-500/15 border border-red-400/40">
             {{ errorMsg }}
           </div>
 
           <div>
             <button 
               type="submit" 
-              class="group relative flex w-full justify-center border border-transparent bg-primary px-4 py-3 text-sm font-semibold uppercase tracking-widest text-black hover:bg-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-bgDark"
+              class="group relative flex w-full justify-center border border-transparent bg-primary px-4 py-3 text-sm font-semibold uppercase tracking-widest text-black hover:bg-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
             >
-              Sign in to Workspace
+              Entrar al panel
             </button>
           </div>
           
           <div class="mt-6 text-center">
              <router-link to="/" class="text-textMuted hover:text-white transition-colors text-sm">
-               &larr; Back to Booking
+               &larr; Volver a reservas
              </router-link>
           </div>
         </form>

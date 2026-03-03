@@ -12,28 +12,28 @@
       
       <div class="inline-block mb-8 animate-fade-in-up">
         <span class="px-4 py-1 border border-primary/30 text-primary text-xs tracking-[0.3em] uppercase backdrop-blur-md">
-          The Platinum Standard
+          El estándar premium
         </span>
       </div>
 
       <h1 class="font-display text-5xl sm:text-8xl font-black leading-[1.1] mb-8 animate-fade-in-up delay-100 text-transparent bg-clip-text bg-gradient-to-b from-white via-[#DFF7E7] to-[#7CC89A] drop-shadow-2xl">
-        Curate Your <br/>
-        <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-[#9EF0BC] to-primary">Legacy</span>
+        Gestiona tu <br/>
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-[#9EF0BC] to-primary">legado</span>
       </h1>
       
       <p class="text-lg sm:text-2xl text-textMuted max-w-2xl font-light leading-relaxed animate-fade-in-up delay-200 mb-12">
-        An immaculate booking grid engineered to eliminate empty slots and elevate your brand's prestige. Enter the definitive ecosystem for elite salons and studios.
+        Un sistema de reservas impecable diseñado para reducir huecos y elevar el prestigio de tu marca. Entra en el ecosistema definitivo para salones y estudios.
       </p>
 
       <div class="flex flex-col sm:flex-row gap-6 mt-4 w-full sm:w-auto animate-fade-in-up delay-300">
         <router-link to="/owner/login" class="btn-primary w-full sm:w-auto group">
           <span class="relative z-10 flex items-center gap-3">
-            Partner Access
+            Acceso para negocios
             <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
           </span>
         </router-link>
         <router-link to="/superadmin/login" class="btn-secondary w-full sm:w-auto">
-          System Administration
+          Administración del sistema
         </router-link>
       </div>
       
@@ -41,11 +41,11 @@
       <div class="mt-24 p-8 glass w-full max-w-3xl flex flex-col md:flex-row items-center justify-between gap-8 animate-fade-in-up delay-400 relative overflow-hidden group">
         <div class="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
         <div class="text-left relative z-10">
-          <h3 class="font-display font-semibold text-2xl text-white mb-2">Experience The Booking Flow</h3>
-          <p class="text-textMuted font-light">Interact with the reservation interface exactly as your clientele would.</p>
+          <h3 class="font-display font-semibold text-2xl text-white mb-2">Prueba el flujo de reservas</h3>
+          <p class="text-textMuted font-light">Interactúa con la interfaz de reserva exactamente como lo harían tus clientes.</p>
         </div>
         <router-link to="/book/pelu" class="relative z-10 px-8 py-3 bg-primary text-[#060606] font-semibold text-sm uppercase tracking-widest hover:bg-primaryHover transition-colors shrink-0">
-          Demo Booking
+          Reserva demo
         </router-link>
       </div>
 

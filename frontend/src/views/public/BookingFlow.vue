@@ -16,7 +16,7 @@ const slug = route.params.slug as string;
 const step = ref(1); // 1: Service, 2: Staff, 3: Date/Time, 4: Details, 5: Confirmation
 
 watch(step, (newStep) => {
-  const stepNames = ['Service Selection', 'Provider Selection', 'Availability', 'Client Details', 'Confirmed'];
+  const stepNames = ['Selección de servicio', 'Selección de profesional', 'Disponibilidad', 'Datos del cliente', 'Confirmado'];
   trackEvent('view_booking_step', { step: newStep, step_name: stepNames[newStep - 1] });
 });
 const services = ref<any[]>([]);
@@ -120,15 +120,15 @@ const submitBooking = async () => {
     } else {
       const data = await res.json();
       trackEvent('booking_failed', { error: data.error });
-      alert(data.error || 'Failed to book appointment');
+      alert(data.error || 'No se pudo reservar la cita');
     }
   } catch (error) {
     console.error(error);
   }
 };
 
-const formatTime = (isoString: string) => new Date(isoString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+const formatTime = (isoString: string) => new Date(isoString).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString('es-ES', { weekday: 'long', month: 'long', day: 'numeric' });
 
 const selectedServiceName = computed(() => services.value.find(s => s.id === booking.value.serviceId)?.name || '');
 const selectedStaffName = computed(() => staff.value.find(s => s.id === booking.value.staffId)?.user.name || '');
@@ -150,22 +150,22 @@ const selectedStaffName = computed(() => staff.value.find(s => s.id === booking.
         </button>
         
         <h2 class="font-display font-medium text-2xl tracking-wide uppercase text-white mb-6">
-          <span v-if="step === 1">Service Selection</span>
-          <span v-else-if="step === 2">Select Provider</span>
-          <span v-else-if="step === 3">Availability</span>
-          <span v-else-if="step === 4">Your Details</span>
-          <span v-else-if="step === 5" class="text-primary">Confirmed</span>
+          <span v-if="step === 1">Selecciona servicio</span>
+          <span v-else-if="step === 2">Selecciona profesional</span>
+          <span v-else-if="step === 3">Disponibilidad</span>
+          <span v-else-if="step === 4">Tus datos</span>
+          <span v-else-if="step === 5" class="text-primary">Confirmado</span>
         </h2>
         
         <div class="flex justify-center gap-1.5">
-          <div v-for="i in 4" :key="i" :class="['h-[2px] transition-all duration-700 w-12', i === step ? 'bg-primary shadow-[0_0_10px_rgba(229,192,123,0.5)]' : i < step ? 'bg-primary/40' : 'bg-white/10']"></div>
+          <div v-for="i in 4" :key="i" :class="['h-[2px] transition-all duration-700 w-12', i === step ? 'bg-primary shadow-[0_0_10px_rgba(57,203,105,0.45)]' : i < step ? 'bg-primary/40' : 'bg-white/10']"></div>
         </div>
       </div>
 
       <!-- Step 1: Services -->
       <transition name="fade" mode="out-in">
         <div v-if="step === 1" class="flex-1 flex flex-col gap-4">
-          <div v-if="services.length === 0" class="text-center font-light uppercase tracking-widest text-textMuted py-20 animate-pulse">Initializing Catalog...</div>
+          <div v-if="services.length === 0" class="text-center font-light uppercase tracking-widest text-textMuted py-20 animate-pulse">Cargando catálogo...</div>
           <button v-for="s in services" :key="s.id" @click="selectService(s.id, s.name, s.price)" class="w-full p-6 bg-black/40 border-b border-white/5 hover:bg-black/60 hover:pl-8 transition-all duration-300 text-left flex justify-between items-center group cursor-pointer relative overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <div class="relative z-10">
@@ -184,7 +184,7 @@ const selectedStaffName = computed(() => staff.value.find(s => s.id === booking.
             </div>
             <div>
               <h3 class="font-display text-xl mb-1 group-hover:tracking-wider transition-all duration-500">{{ st.user.name }}</h3>
-              <p class="text-xs text-primary uppercase tracking-[0.2em]">Specialist</p>
+              <p class="text-xs text-primary uppercase tracking-[0.2em]">Especialista</p>
             </div>
           </button>
         </div>
@@ -200,10 +200,10 @@ const selectedStaffName = computed(() => staff.value.find(s => s.id === booking.
           />
 
           <div v-if="targetDate" class="animate-fade-in-up">
-            <h3 class="font-display text-lg text-white mb-4 text-center border-b border-white/10 pb-2">Available Times for {{ formatDate(targetDate) }}</h3>
+            <h3 class="font-display text-lg text-white mb-4 text-center border-b border-white/10 pb-2">Horarios disponibles para {{ formatDate(targetDate) }}</h3>
             <div v-if="availableSlots.length === 0" class="flex-1 flex flex-col items-center justify-center text-textMuted py-8">
               <div class="w-12 h-[1px] bg-primary/30 mb-6"></div>
-              <p class="font-light tracking-widest text-sm uppercase">Grid Unavailable</p>
+              <p class="font-light tracking-widest text-sm uppercase">Sin disponibilidad</p>
             </div>
 
             <div v-else class="grid grid-cols-3 gap-3 overflow-y-auto pr-2 pb-4 max-h-48 custom-scrollbar">
@@ -220,15 +220,15 @@ const selectedStaffName = computed(() => staff.value.find(s => s.id === booking.
             <div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
             <div class="flex flex-col gap-3">
               <div class="flex justify-between items-center text-sm font-light">
-                <span class="text-textMuted uppercase tracking-widest text-xs">Service</span>
+                <span class="text-textMuted uppercase tracking-widest text-xs">Servicio</span>
                 <span class="text-white">{{ selectedServiceName }}</span>
               </div>
               <div class="flex justify-between items-center text-sm font-light">
-                <span class="text-textMuted uppercase tracking-widest text-xs">Provider</span>
+                <span class="text-textMuted uppercase tracking-widest text-xs">Profesional</span>
                 <span class="text-white">{{ selectedStaffName }}</span>
               </div>
               <div class="flex justify-between items-center text-sm font-light">
-                <span class="text-textMuted uppercase tracking-widest text-xs">Time</span>
+                <span class="text-textMuted uppercase tracking-widest text-xs">Hora</span>
                 <span class="text-primary">{{ formatTime(booking.startDatetimeUtc) }}</span>
               </div>
             </div>
@@ -236,26 +236,26 @@ const selectedStaffName = computed(() => staff.value.find(s => s.id === booking.
 
           <form @submit.prevent="submitBooking" class="space-y-8 mt-4">
             <div class="relative">
-              <input id="clientName" v-model="booking.clientName" type="text" required class="peer w-full bg-transparent border-b border-white/20 px-0 py-2 text-white placeholder-transparent focus:outline-none focus:border-primary transition-colors" placeholder="Full Name" />
-              <label for="clientName" class="absolute left-0 -top-3.5 text-xs text-textMuted transition-all peer-placeholder-shown:text-base peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-xs peer-focus:text-primary uppercase tracking-widest">Full Name</label>
+              <input id="clientName" v-model="booking.clientName" type="text" required class="peer w-full bg-transparent border-b border-white/20 px-0 py-2 text-white placeholder-transparent focus:outline-none focus:border-primary transition-colors" placeholder="Nombre completo" />
+              <label for="clientName" class="absolute left-0 -top-3.5 text-xs text-textMuted transition-all peer-placeholder-shown:text-base peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-xs peer-focus:text-primary uppercase tracking-widest">Nombre completo</label>
             </div>
             <div class="relative">
-              <input id="clientEmail" v-model="booking.clientEmail" type="email" required class="peer w-full bg-transparent border-b border-white/20 px-0 py-2 text-white placeholder-transparent focus:outline-none focus:border-primary transition-colors" placeholder="Contact Email" />
-              <label for="clientEmail" class="absolute left-0 -top-3.5 text-xs text-textMuted transition-all peer-placeholder-shown:text-base peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-xs peer-focus:text-primary uppercase tracking-widest">Contact Email</label>
+              <input id="clientEmail" v-model="booking.clientEmail" type="email" required class="peer w-full bg-transparent border-b border-white/20 px-0 py-2 text-white placeholder-transparent focus:outline-none focus:border-primary transition-colors" placeholder="Correo de contacto" />
+              <label for="clientEmail" class="absolute left-0 -top-3.5 text-xs text-textMuted transition-all peer-placeholder-shown:text-base peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-xs peer-focus:text-primary uppercase tracking-widest">Correo de contacto</label>
             </div>
             <div class="relative">
-              <input id="clientPhone" v-model="booking.clientPhone" type="tel" class="peer w-full bg-transparent border-b border-white/20 px-0 py-2 text-white placeholder-transparent focus:outline-none focus:border-primary transition-colors" placeholder="Phone Number (Optional)" />
-              <label for="clientPhone" class="absolute left-0 -top-3.5 text-xs text-textMuted transition-all peer-placeholder-shown:text-base peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-xs peer-focus:text-primary uppercase tracking-widest">Phone Number (Optional)</label>
+              <input id="clientPhone" v-model="booking.clientPhone" type="tel" class="peer w-full bg-transparent border-b border-white/20 px-0 py-2 text-white placeholder-transparent focus:outline-none focus:border-primary transition-colors" placeholder="Teléfono (opcional)" />
+              <label for="clientPhone" class="absolute left-0 -top-3.5 text-xs text-textMuted transition-all peer-placeholder-shown:text-base peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-xs peer-focus:text-primary uppercase tracking-widest">Teléfono (opcional)</label>
             </div>
           </form>
 
           <div class="mt-12 flex flex-col gap-3">
             <button @click="submitBooking" class="btn-primary w-full py-5 text-sm tracking-[0.2em] shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-shadow">
-              Finalize Reservation
+              Finalizar reserva
             </button>
             <p class="text-center text-[10px] text-textMuted uppercase tracking-widest font-light flex items-center justify-center gap-2">
               <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-              No credit card required. Fast & Secure.
+              No se requiere tarjeta. Rápido y seguro.
             </p>
           </div>
         </div>
@@ -269,12 +269,12 @@ const selectedStaffName = computed(() => staff.value.find(s => s.id === booking.
             </div>
           </div>
           
-          <h2 class="font-display text-4xl mb-4 text-white">Booking Confirmed</h2>
-          <p class="text-textMuted font-light max-w-sm mb-6 leading-relaxed">Your reservation protocol has been completed. Check your inbox for the confirmation email.</p>
+          <h2 class="font-display text-4xl mb-4 text-white">Reserva confirmada</h2>
+          <p class="text-textMuted font-light max-w-sm mb-6 leading-relaxed">Tu reserva se ha completado. Revisa tu bandeja de entrada para ver el correo de confirmación.</p>
           <p class="text-sm tracking-widest text-primary border-t border-b border-primary/20 py-3 w-full">{{ formatTime(booking.startDatetimeUtc) }} // {{ formatDate(booking.startDatetimeUtc) }}</p>
           
           <button @click="step = 1; targetDate = new Date().toISOString().split('T')[0] || ''" class="mt-16 text-xs uppercase tracking-widest text-textMuted hover:text-white transition-colors border-b border-white/30 pb-1">
-            Initiate New Request
+            Iniciar nueva reserva
           </button>
         </div>
       </transition>

@@ -20,8 +20,8 @@ const handleLogin = async () => {
     });
     
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Access Denied');
-    if (data.user.role !== 'OWNER' && data.user.role !== 'STAFF') throw new Error('Partner privileges required.');
+    if (!res.ok) throw new Error(data.error || 'Acceso denegado');
+    if (data.user.role !== 'OWNER' && data.user.role !== 'STAFF') throw new Error('Se requieren permisos de negocio.');
     
     localStorage.setItem('token', data.token);
     router.push('/owner/dashboard');
@@ -46,15 +46,15 @@ const handleLogin = async () => {
           <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
         </div>
         
-        <h2 class="font-display text-3xl font-bold mb-2 text-white">Partner Portal</h2>
-        <p class="text-textMuted text-xs font-light tracking-widest uppercase mb-10 text-center text-balance">Enterprise Resource Management</p>
+        <h2 class="font-display text-3xl font-bold mb-2 text-white">Portal de negocio</h2>
+        <p class="text-textMuted text-xs font-light tracking-widest uppercase mb-10 text-center text-balance">Gestión de recursos del negocio</p>
         
         <form @submit.prevent="handleLogin" class="w-full space-y-6">
           <div>
-            <input v-model="email" type="email" required class="input-premium bg-black/40 border-white/10 hover:border-primary/50 focus:border-primary text-sm tracking-widest" placeholder="REGISTERED EMAIL" />
+            <input v-model="email" type="email" required class="input-premium bg-black/40 border-white/10 hover:border-primary/50 focus:border-primary text-sm tracking-widest" placeholder="CORREO REGISTRADO" />
           </div>
           <div>
-            <input v-model="password" type="password" required class="input-premium bg-black/40 border-white/10 hover:border-primary/50 focus:border-primary text-sm tracking-widest" placeholder="PASSCODE" />
+            <input v-model="password" type="password" required class="input-premium bg-black/40 border-white/10 hover:border-primary/50 focus:border-primary text-sm tracking-widest" placeholder="CONTRASEÑA" />
           </div>
           
           <div v-if="errorMsg" class="text-red-400 text-xs tracking-widest uppercase mt-4 text-center">
@@ -62,8 +62,8 @@ const handleLogin = async () => {
           </div>
           
           <button type="submit" :disabled="loading" class="btn-primary w-full mt-10 py-5 tracking-[0.2em]">
-            <span v-if="!loading">Initialize Session</span>
-            <span v-else class="animate-pulse">Connecting</span>
+            <span v-if="!loading">Iniciar sesión</span>
+            <span v-else class="animate-pulse">Conectando</span>
           </button>
         </form>
       </div>
