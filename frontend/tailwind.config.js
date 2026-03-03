@@ -7,14 +7,14 @@ export default {
     theme: {
         extend: {
             colors: {
-                primary: "#E5C07B", /* Rich Gold */
-                primaryHover: "#FCEFD4",
-                background: "#050505",
-                surface: "#0a0a0a",
-                surfaceHover: "#121212",
-                text: "#F3F3F3",
-                textMuted: "#8E8E8E",
-                border: "#1F1F1F"
+                primary: "#39CB69",
+                primaryHover: "#2FB75C",
+                background: "#015351",
+                surface: "#0A6462",
+                surfaceHover: "#0D706D",
+                text: "#F6F7F6",
+                textMuted: "#C8D8D6",
+                border: "#1B7C79"
             },
             fontFamily: {
                 sans: ['"Plus Jakarta Sans"', 'sans-serif'],

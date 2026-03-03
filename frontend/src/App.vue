@@ -5,9 +5,13 @@
 <template>
   <div class="min-h-screen bg-background text-text font-sans flex flex-col pt-16 selection:bg-primary selection:text-black">
     <!-- Super simple top nav for MVP navigation -->
-    <nav class="fixed top-0 w-full h-16 border-b border-white/5 glass z-50 flex items-center px-8 justify-between">
+    <nav class="fixed top-0 w-full h-16 border-b border-primary/20 glass z-50 flex items-center px-8 justify-between">
       <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-black font-display font-bold">B</div>
+        <img
+          src="https://res.cloudinary.com/diaiwcmby/image/upload/c_scale,w_72,h_72,f_auto,q_auto/v1754907289/icono1_yye31j.avif"
+          alt="Agendexa icon"
+          class="w-9 h-9 rounded-lg"
+        />
         <router-link to="/" class="font-display font-semibold text-lg tracking-wide hover:text-primary transition-colors">AGENDEXA</router-link>
       </div>
       <div class="flex gap-6 text-sm font-medium items-center">

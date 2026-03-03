@@ -16,9 +16,9 @@
         </span>
       </div>
 
-      <h1 class="font-display text-5xl sm:text-8xl font-black leading-[1.1] mb-8 animate-fade-in-up delay-100 text-transparent bg-clip-text bg-gradient-to-b from-white via-neutral-200 to-neutral-500 drop-shadow-2xl">
+      <h1 class="font-display text-5xl sm:text-8xl font-black leading-[1.1] mb-8 animate-fade-in-up delay-100 text-transparent bg-clip-text bg-gradient-to-b from-white via-[#DFF7E7] to-[#7CC89A] drop-shadow-2xl">
         Curate Your <br/>
-        <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-yellow-200 to-primary">Legacy</span>
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-[#9EF0BC] to-primary">Legacy</span>
       </h1>
       
       <p class="text-lg sm:text-2xl text-textMuted max-w-2xl font-light leading-relaxed animate-fade-in-up delay-200 mb-12">
@@ -44,7 +44,7 @@
           <h3 class="font-display font-semibold text-2xl text-white mb-2">Experience The Booking Flow</h3>
           <p class="text-textMuted font-light">Interact with the reservation interface exactly as your clientele would.</p>
         </div>
-        <router-link to="/book/pelu" class="relative z-10 px-8 py-3 bg-white text-black font-semibold text-sm uppercase tracking-widest hover:bg-neutral-200 transition-colors shrink-0">
+        <router-link to="/book/pelu" class="relative z-10 px-8 py-3 bg-primary text-[#060606] font-semibold text-sm uppercase tracking-widest hover:bg-primaryHover transition-colors shrink-0">
           Demo Booking
         </router-link>
       </div>
