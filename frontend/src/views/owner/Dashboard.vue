@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import CalendarPicker from '../../components/CalendarPicker.vue';
 
 const router = useRouter();
 const activeTab = ref('appointments');
@@ -28,6 +29,7 @@ const newBooking = ref({
   time: ''
 });
 const availableSlots = ref<string[]>([]);
+const monthlyAvailability = ref<Record<string, boolean>>({});
 
 const fetchDashboardData = async () => {
   const token = localStorage.getItem('token');
@@ -191,9 +193,45 @@ const handleDateOrStaffChange = async () => {
   }
 };
 
+const handleMonthChange = async (year: number, month: number) => {
+  if (!newBooking.value.serviceId || !newBooking.value.staffId) return;
+  const slug = 'pelu';
+  try {
+    const res = await fetch(`http://localhost:3000/public/${slug}/availability/month?serviceId=${newBooking.value.serviceId}&staffId=${newBooking.value.staffId}&year=${year}&month=${month}`);
+    if (res.ok) {
+      monthlyAvailability.value = await res.json();
+    } else {
+      monthlyAvailability.value = {};
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+const handleDateSelect = (dateStr: string) => {
+  newBooking.value.date = dateStr;
+  handleDateOrStaffChange(); // Load the timeslots for that date
+};
+
+const fetchInitialMonthlyAvailability = () => {
+  const today = new Date();
+  handleMonthChange(today.getFullYear(), today.getMonth() + 1);
+};
+
+// Also inject fetchInitialMonthlyAvailability into handleDateOrStaffChange if date doesn't exist yet but service and staff do
+const handleServiceStaffChange = () => {
+  if (newBooking.value.serviceId && newBooking.value.staffId) {
+    fetchInitialMonthlyAvailability();
+    if (newBooking.value.date) {
+      handleDateOrStaffChange();
+    }
+  }
+};
+
 const openBookingModal = () => {
   newBooking.value = { clientName: '', clientEmail: '', serviceId: '', staffId: '', date: '', time: '' };
   availableSlots.value = [];
+  monthlyAvailability.value = {};
   showBookingModal.value = true;
 };
 
@@ -483,28 +521,50 @@ const formatDate = (isoString: string) => new Date(isoString).toLocaleDateString
             <input v-model="newBooking.clientEmail" type="email" placeholder="CLIENT EMAIL" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
             
             <div class="grid grid-cols-2 gap-4">
-              <select v-model="newBooking.serviceId" @change="handleDateOrStaffChange" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest text-white">
+              <select v-model="newBooking.serviceId" @change="handleServiceStaffChange" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest text-white">
                 <option value="" disabled selected>SERVICE</option>
                 <option v-for="s in services" :key="s.id" :value="s.id">{{ s.name }}</option>
               </select>
-              <select v-model="newBooking.staffId" @change="handleDateOrStaffChange" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest text-white">
+              <select v-model="newBooking.staffId" @change="handleServiceStaffChange" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest text-white">
                 <option value="" disabled selected>OPERATIVE</option>
                 <option v-for="st in staff" :key="st.id" :value="st.id">{{ st.user.name }}</option>
               </select>
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
-              <input v-model="newBooking.date" @change="handleDateOrStaffChange" type="date" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest text-white" />
-              <select v-model="newBooking.time" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest text-white" :disabled="availableSlots.length === 0">
-                <option value="" disabled selected>TIME SLOT</option>
-                <option v-for="slot in availableSlots" :key="slot" :value="slot">
-                  {{ formatTime(slot) }}
-                </option>
-              </select>
+            <div v-if="newBooking.serviceId && newBooking.staffId" class="animate-fade-in-up">
+               <label class="block text-primary uppercase tracking-widest text-[10px] mb-4 font-semibold">Select Date</label>
+               <CalendarPicker 
+                  :availabilityMap="monthlyAvailability"
+                  :selectedDate="newBooking.date"
+                  @month-change="handleMonthChange"
+                  @select="handleDateSelect"
+               />
             </div>
-            
-            <div v-if="newBooking.date && availableSlots.length === 0" class="text-red-500/70 text-[10px] uppercase tracking-widest mt-2 border border-red-900/50 p-2 bg-red-900/10">
-              No slots available for this configuration.
+
+            <div class="grid grid-cols-1 gap-4 animate-fade-in-up" v-if="newBooking.date">
+              <label class="block text-primary uppercase tracking-widest text-[10px] mb-1 font-semibold">
+                Available Times for {{ formatDate(newBooking.date) }}
+              </label>
+              
+              <div v-if="availableSlots.length === 0" class="flex flex-col items-center justify-center text-textMuted py-4">
+                <div class="w-12 h-[1px] bg-primary/30 mb-6"></div>
+                <p class="font-light tracking-widest text-[10px] uppercase">Grid Unavailable</p>
+              </div>
+
+              <div v-else class="grid grid-cols-3 gap-3 max-h-48 overflow-y-auto custom-scrollbar pr-2">
+                <button 
+                  v-for="slot in availableSlots" 
+                  :key="slot" 
+                  type="button"
+                  @click="newBooking.time = slot" 
+                  :class="['py-3 text-center border transition-all duration-300 text-sm font-light tracking-widest',
+                    newBooking.time === slot 
+                      ? 'bg-primary text-black border-primary shadow-[0_0_15px_rgba(229,192,123,0.3)] font-medium'
+                      : 'border-white/5 bg-black/20 text-white hover:bg-primary/10 hover:border-primary/50'
+                  ]">
+                  {{ formatTime(slot) }}
+                </button>
+              </div>
             </div>
 
             <div class="flex justify-end gap-4 mt-8 pt-6 border-t border-white/10">

@@ -155,6 +155,130 @@ export const getAvailability = async (req: Request, res: Response) => {
     }
 };
 
+export const getMonthlyAvailability = async (req: Request, res: Response) => {
+    try {
+        const { slug } = req.params;
+        const { serviceId, staffId, year, month } = req.query; // year: YYYY, month: MM
+
+        if (!serviceId || !staffId || !year || !month) {
+            return res.status(400).json({ error: 'serviceId, staffId, year, and month are required' });
+        }
+
+        const business = await prisma.business.findUnique({ where: { slug } });
+        if (!business) return res.status(404).json({ error: 'Business not found' });
+
+        const service = await prisma.service.findUnique({ where: { id: String(serviceId) } });
+        if (!service) return res.status(404).json({ error: 'Service not found' });
+
+        const yearNum = parseInt(String(year), 10);
+        const monthNum = parseInt(String(month), 10) - 1; // JS months are 0-indexed
+
+        // Get all schedules for this staff to know which days they work
+        const schedules = await prisma.schedule.findMany({
+            where: { staff_id: String(staffId) }
+        });
+
+        if (schedules.length === 0) {
+            return res.json({}); // No schedule -> no availability
+        }
+
+        // Object map for fast lookup of schedules by dayOfWeek
+        const scheduleMap: Record<number, any> = {};
+        schedules.forEach(s => scheduleMap[s.day_of_week] = s);
+
+        const startDate = new Date(Date.UTC(yearNum, monthNum, 1));
+        const endDate = new Date(Date.UTC(yearNum, monthNum + 1, 0, 23, 59, 59, 999));
+
+        const timeOffs = await prisma.timeOff.findMany({
+            where: {
+                staff_id: String(staffId),
+                start_datetime_utc: { lte: endDate },
+                end_datetime_utc: { gte: startDate }
+            }
+        });
+
+        const appointments = await prisma.appointment.findMany({
+            where: {
+                staff_id: String(staffId),
+                status: { in: ['CONFIRMED', 'COMPLETED'] },
+                start_datetime_utc: { lte: endDate },
+                end_datetime_utc: { gte: startDate }
+            }
+        });
+
+        const intervalMin = business.slot_interval_minutes;
+        const durationMin = service.duration_min;
+        const now = new Date();
+
+        const daysInMonth = endDate.getUTCDate();
+        const availabilityMap: Record<string, boolean> = {};
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            const targetDate = new Date(Date.UTC(yearNum, monthNum, day));
+            const dateString = targetDate.toISOString().split('T')[0];
+            const dayOfWeek = targetDate.getUTCDay();
+
+            const schedule = scheduleMap[dayOfWeek];
+            if (!schedule || targetDate.getTime() + 86400000 < now.getTime()) {
+                // No schedule for this day or date is in the past
+                availabilityMap[dateString] = false;
+                continue;
+            }
+
+            // Check if there is AT LEAST ONE slot available this day
+            const [startH, startM] = schedule.start_time.split(':').map(Number);
+            const [endH, endM] = schedule.end_time.split(':').map(Number);
+
+            let currentSlotH = startH;
+            let currentSlotM = startM;
+            let hasSlot = false;
+
+            while (currentSlotH < endH || (currentSlotH === endH && currentSlotM < endM)) {
+                const slotStart = new Date(targetDate);
+                slotStart.setUTCHours(currentSlotH, currentSlotM, 0, 0);
+
+                const slotEnd = new Date(slotStart.getTime() + durationMin * 60000);
+
+                const scheduleEnd = new Date(targetDate);
+                scheduleEnd.setUTCHours(endH, endM, 0, 0);
+
+                if (slotEnd.getTime() <= scheduleEnd.getTime()) {
+                    if (slotStart.getTime() > now.getTime()) {
+                        const overlapsTimeOff = timeOffs.some(toff =>
+                            slotStart.getTime() < toff.end_datetime_utc.getTime() &&
+                            slotEnd.getTime() > toff.start_datetime_utc.getTime()
+                        );
+
+                        if (!overlapsTimeOff) {
+                            const overlapsAppt = appointments.some(appt =>
+                                slotStart.getTime() < appt.end_datetime_utc.getTime() &&
+                                slotEnd.getTime() > appt.start_datetime_utc.getTime()
+                            );
+
+                            if (!overlapsAppt) {
+                                hasSlot = true;
+                                break; // We just need to know if at least one exists
+                            }
+                        }
+                    }
+                }
+
+                currentSlotM += intervalMin;
+                if (currentSlotM >= 60) {
+                    currentSlotH += Math.floor(currentSlotM / 60);
+                    currentSlotM = currentSlotM % 60;
+                }
+            }
+            availabilityMap[dateString] = hasSlot;
+        }
+
+        return res.json(availabilityMap);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
 export const bookAppointment = async (req: Request, res: Response) => {
     try {
         const { slug } = req.params;

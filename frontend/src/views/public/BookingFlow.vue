@@ -2,6 +2,8 @@
 import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
+import CalendarPicker from '../../components/CalendarPicker.vue';
+
 // Simulated Analytics Hook
 const trackEvent = (eventName: string, properties: any = {}) => {
   console.log(`[Analytics] ${eventName}`, properties);
@@ -20,7 +22,8 @@ watch(step, (newStep) => {
 const services = ref<any[]>([]);
 const staff = ref<any[]>([]);
 const availableSlots = ref<string[]>([]);
-const targetDate = ref<string>(new Date().toISOString().split('T')[0] || '');
+const targetDate = ref<string>(''); // No default date selected initially
+const monthlyAvailability = ref<Record<string, boolean>>({});
 
 const booking = ref({
   serviceId: '',
@@ -56,7 +59,25 @@ const selectStaff = async (id: string, name: string) => {
   booking.value.staffId = id;
   trackEvent('select_staff', { staff_id: id, staff_name: name });
   step.value = 3;
-  await fetchAvailability();
+  targetDate.value = ''; // Reset selected date
+  availableSlots.value = []; // Reset slots
+  
+  const today = new Date();
+  await fetchMonthlyAvailability(today.getFullYear(), today.getMonth() + 1);
+};
+
+const fetchMonthlyAvailability = async (year: number, month: number) => {
+  if (!booking.value.serviceId || !booking.value.staffId) return;
+  try {
+    const res = await fetch(`http://localhost:3000/public/${slug}/availability/month?serviceId=${booking.value.serviceId}&staffId=${booking.value.staffId}&year=${year}&month=${month}`);
+    if (res.ok) {
+      monthlyAvailability.value = await res.json();
+    } else {
+      monthlyAvailability.value = {};
+    }
+  } catch (err) {
+    console.error(err);
+  }
 };
 
 const fetchAvailability = async () => {
@@ -76,11 +97,13 @@ const selectSlot = (slotUtc: string) => {
   step.value = 4;
 };
 
-const changeDate = (offset: number) => {
-  const d = new Date(targetDate.value);
-  d.setDate(d.getDate() + offset);
-  targetDate.value = d.toISOString().split('T')[0] || '';
-  fetchAvailability();
+const handleMonthChange = (year: number, month: number) => {
+  fetchMonthlyAvailability(year, month);
+};
+
+const handleDateSelect = async (dateStr: string) => {
+  targetDate.value = dateStr;
+  await fetchAvailability();
 };
 
 const submitBooking = async () => {
@@ -167,24 +190,27 @@ const selectedStaffName = computed(() => staff.value.find(s => s.id === booking.
         </div>
 
         <!-- Step 3: Date & Time -->
-        <div v-else-if="step === 3" class="flex-1 flex flex-col h-full">
-          <div class="flex items-center justify-between border-b border-t border-white/5 py-3 mb-8">
-            <button @click="changeDate(-1)" class="p-3 text-textMuted hover:text-white transition-colors"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M15 19l-7-7 7-7" /></svg></button>
-            <div class="font-display font-medium text-center uppercase tracking-widest text-sm flex-1">
-              {{ formatDate(targetDate) }}
+        <div v-else-if="step === 3" class="flex-1 flex flex-col h-full gap-8">
+          
+          <CalendarPicker 
+            :availabilityMap="monthlyAvailability"
+            :selectedDate="targetDate"
+            @month-change="handleMonthChange"
+            @select="handleDateSelect"
+          />
+
+          <div v-if="targetDate" class="animate-fade-in-up">
+            <h3 class="font-display text-lg text-white mb-4 text-center border-b border-white/10 pb-2">Available Times for {{ formatDate(targetDate) }}</h3>
+            <div v-if="availableSlots.length === 0" class="flex-1 flex flex-col items-center justify-center text-textMuted py-8">
+              <div class="w-12 h-[1px] bg-primary/30 mb-6"></div>
+              <p class="font-light tracking-widest text-sm uppercase">Grid Unavailable</p>
             </div>
-            <button @click="changeDate(1)" class="p-3 text-textMuted hover:text-white transition-colors"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M9 5l7 7-7 7" /></svg></button>
-          </div>
 
-          <div v-if="availableSlots.length === 0" class="flex-1 flex flex-col items-center justify-center text-textMuted">
-            <div class="w-12 h-[1px] bg-primary/30 mb-6"></div>
-            <p class="font-light tracking-widest text-sm uppercase">Grid Unavailable</p>
-          </div>
-
-          <div v-else class="grid grid-cols-3 gap-4 overflow-y-auto pr-2 pb-4">
-            <button v-for="slot in availableSlots" :key="slot" @click="selectSlot(slot)" class="py-4 text-center border border-white/5 bg-black/20 hover:bg-primary/10 hover:border-primary/50 transition-all duration-300 text-sm font-light tracking-widest">
-              {{ formatTime(slot) }}
-            </button>
+            <div v-else class="grid grid-cols-3 gap-3 overflow-y-auto pr-2 pb-4 max-h-48 custom-scrollbar">
+              <button v-for="slot in availableSlots" :key="slot" @click="selectSlot(slot)" class="py-3 text-center border border-white/5 bg-black/20 hover:bg-primary/10 hover:border-primary/50 transition-all duration-300 text-sm font-light tracking-widest">
+                {{ formatTime(slot) }}
+              </button>
+            </div>
           </div>
         </div>
 
