@@ -62,3 +62,71 @@ export const login = async (req: Request, res: Response) => {
         return res.status(500).json({ error: 'Internal server error' });
     }
 };
+
+export const registerClient = async (req: Request, res: Response) => {
+    try {
+        const { name, email, password } = req.body;
+
+        if (!name || !email || !password) {
+            return res.status(400).json({ error: 'Name, email, and password are required' });
+        }
+
+        // Check if user already exists
+        const existingUser = await prisma.user.findUnique({ where: { email } });
+
+        let user;
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        if (existingUser) {
+            // If the user exists but has no password (guest shadow account), upgrade it
+            if (!existingUser.password_hash) {
+                user = await prisma.user.update({
+                    where: { id: existingUser.id },
+                    data: {
+                        name,
+                        password_hash: hashedPassword,
+                        role: 'CLIENT'
+                    }
+                });
+            } else {
+                return res.status(409).json({ error: 'Email already exists' });
+            }
+        } else {
+            // Create brand new client user
+            user = await prisma.user.create({
+                data: {
+                    name,
+                    email,
+                    password_hash: hashedPassword,
+                    role: 'CLIENT'
+                }
+            });
+        }
+
+        // Auto login after registration
+        const payload = {
+            id: user.id,
+            email: user.email,
+            role: user.role
+        };
+
+        const token = jwt.sign(payload, process.env.JWT_SECRET || 'super_secret_jwt_key_for_mvp', {
+            expiresIn: '24h'
+        });
+
+        return res.status(201).json({
+            token,
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        });
+
+    } catch (error) {
+        console.error('Register error:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+};

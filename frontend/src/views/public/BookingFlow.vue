@@ -35,6 +35,18 @@ const booking = ref({
 });
 
 onMounted(async () => {
+  // Pre-fill client data if logged in
+  const userStr = localStorage.getItem('user');
+  if (userStr) {
+    try {
+      const user = JSON.parse(userStr);
+      if (user.role === 'CLIENT') {
+        booking.value.clientName = user.name || '';
+        booking.value.clientEmail = user.email || '';
+      }
+    } catch(e) {}
+  }
+
   try {
     const res = await fetch(`http://localhost:3000/public/${slug}/services`);
     if (res.ok) services.value = await res.json();
@@ -246,6 +258,10 @@ const selectedStaffName = computed(() => staff.value.find(s => s.id === booking.
             <div class="relative">
               <input id="clientPhone" v-model="booking.clientPhone" type="tel" class="peer w-full bg-transparent border-b border-white/20 px-0 py-2 text-white placeholder-transparent focus:outline-none focus:border-primary transition-colors" placeholder="Teléfono (opcional)" />
               <label for="clientPhone" class="absolute left-0 -top-3.5 text-xs text-textMuted transition-all peer-placeholder-shown:text-base peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-xs peer-focus:text-primary uppercase tracking-widest">Teléfono (opcional)</label>
+            </div>
+
+            <div v-if="!booking.clientName && !booking.clientEmail" class="text-xs font-light text-textMuted text-center mt-2">
+              ¿Ya tienes cuenta? <router-link :to="`/client/login?redirect=/book/${slug}`" class="text-primary hover:text-white border-b border-primary/30">Inicia sesión</router-link>
             </div>
           </form>
 

@@ -1,3 +1,36 @@
+<script setup lang="ts">
+import { ref } from 'vue';
+
+const searchQuery = ref('');
+const searchResults = ref<any[]>([]);
+const isSearching = ref(false);
+
+let searchTimeout: any = null;
+
+const handleSearch = () => {
+  if (searchTimeout) clearTimeout(searchTimeout);
+  
+  if (!searchQuery.value.trim()) {
+    searchResults.value = [];
+    return;
+  }
+
+  isSearching.value = true;
+  searchTimeout = setTimeout(async () => {
+    try {
+      const res = await fetch(`http://localhost:3000/public/businesses/search?q=${encodeURIComponent(searchQuery.value)}`);
+      if (res.ok) {
+        searchResults.value = await res.json();
+      }
+    } catch (e) {
+      console.error('Error searching businesses', e);
+    } finally {
+      isSearching.value = false;
+    }
+  }, 300); // 300ms debounce
+};
+</script>
+
 <template>
   <div class="flex flex-col items-center justify-center flex-1 px-4 sm:px-8 relative overflow-hidden w-full min-h-screen">
     
@@ -37,16 +70,40 @@
         </router-link>
       </div>
       
-      <!-- Demo link for booking -->
-      <div class="mt-24 p-8 glass w-full max-w-3xl flex flex-col md:flex-row items-center justify-between gap-8 animate-fade-in-up delay-400 relative overflow-hidden group">
-        <div class="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
-        <div class="text-left relative z-10">
-          <h3 class="font-display font-semibold text-2xl text-white mb-2">Prueba el flujo de reservas</h3>
-          <p class="text-textMuted font-light">Interactúa con la interfaz de reserva exactamente como lo harían tus clientes.</p>
+      <!-- Search Engine Box -->
+      <div class="mt-20 w-full max-w-2xl px-4 animate-fade-in-up delay-400 relative">
+        <label class="block text-primary uppercase tracking-widest text-[10px] mb-4 font-semibold text-center">Encuentra tu centro</label>
+        
+        <div class="relative">
+          <input 
+            v-model="searchQuery"
+            @input="handleSearch"
+            type="search" 
+            placeholder="Ej: Peluquería Luis, Uñas de Cristal..." 
+            class="w-full bg-black/40 border border-white/10 text-white px-6 py-5 rounded-none outline-none focus:border-primary/50 focus:bg-black/60 transition-all font-light tracking-wide text-lg"
+          >
+          <div v-if="isSearching" class="absolute right-6 top-1/2 -translate-y-1/2 w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
         </div>
-        <router-link to="/book/pelu" class="relative z-10 px-8 py-3 bg-primary text-[#060606] font-semibold text-sm uppercase tracking-widest hover:bg-primaryHover transition-colors shrink-0">
-          Reserva demo
-        </router-link>
+
+        <!-- Search Results Dropdown -->
+        <div v-if="searchQuery && (searchResults.length > 0 || !isSearching)" class="absolute left-4 right-4 mt-2 bg-black border border-white/10 z-50 shadow-2xl">
+          <div v-if="searchResults.length === 0 && !isSearching" class="p-6 text-center text-textMuted font-light text-sm italic">
+            No se encontraron negocios con ese nombre.
+          </div>
+          
+          <router-link 
+            v-for="biz in searchResults" 
+            :key="biz.id"
+            :to="`/book/${biz.slug}`"
+            class="block p-5 border-b border-white/5 hover:bg-white/5 transition-colors group flex items-center justify-between"
+          >
+            <div>
+              <h4 class="font-display text-xl text-white group-hover:text-primary transition-colors">{{ biz.name }}</h4>
+              <p class="text-xs text-textMuted uppercase tracking-widest mt-1">/{{ biz.slug }}</p>
+            </div>
+            <svg class="w-5 h-5 text-textMuted group-hover:text-primary transform group-hover:translate-x-1 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M9 5l7 7-7 7" /></svg>
+          </router-link>
+        </div>
       </div>
 
     </div>

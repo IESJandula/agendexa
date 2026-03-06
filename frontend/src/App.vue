@@ -15,11 +15,14 @@
         <router-link to="/" class="font-display font-semibold text-lg tracking-wide hover:text-primary transition-colors">AGENDEXA</router-link>
       </div>
       <div class="flex gap-6 text-sm font-medium items-center">
-        <router-link to="/book/pelu" class="text-primary hover:text-white transition-colors border border-primary/30 px-3 py-1 rounded-sm text-xs tracking-widest uppercase">Reservar ahora (Demo)</router-link>
-        <span class="w-px h-4 bg-white/10 mx-2"></span>
         <router-link to="/superadmin/login" class="text-textMuted hover:text-white transition-colors">Superadministración</router-link>
         <router-link to="/owner/login" class="text-textMuted hover:text-white transition-colors">Acceso negocio</router-link>
         <router-link to="/staff/login" class="text-textMuted hover:text-white transition-colors">Acceso personal</router-link>
+        <span class="w-px h-4 bg-white/10 mx-2"></span>
+        <router-link to="/client/login" class="text-primary font-medium hover:text-white transition-colors flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+          Área Cliente
+        </router-link>
       </div>
     </nav>
 

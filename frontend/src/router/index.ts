@@ -10,6 +10,11 @@ const StaffLogin = () => import('../views/staff/Login.vue');
 const StaffDashboard = () => import('../views/staff/Dashboard.vue');
 const BookingFlow = () => import('../views/public/BookingFlow.vue');
 
+// Client views
+const ClientLogin = () => import('../views/client/Login.vue');
+const ClientRegister = () => import('../views/client/Register.vue');
+const ClientDashboard = () => import('../views/client/Dashboard.vue');
+
 const routes = [
     { path: '/', component: Home },
     { path: '/superadmin/login', component: SuperadminLogin },
@@ -18,7 +23,10 @@ const routes = [
     { path: '/owner/dashboard', component: OwnerDashboard },
     { path: '/staff/login', component: StaffLogin },
     { path: '/staff/dashboard', component: StaffDashboard },
-    { path: '/book/:slug', component: BookingFlow }
+    { path: '/book/:slug', component: BookingFlow },
+    { path: '/client/login', component: ClientLogin },
+    { path: '/client/register', component: ClientRegister },
+    { path: '/client/dashboard', component: ClientDashboard }
 ];
 
 const router = createRouter({

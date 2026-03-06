@@ -94,7 +94,7 @@ const selectDate = (day: any) => {
 
     <!-- Header -->
     <div class="flex items-center justify-between p-4 border-b border-white/5">
-      <button @click="changeMonth(-1)" class="p-2 text-textMuted hover:text-white transition-colors" :class="{'opacity-50 cursor-not-allowed': currentYear === today.getFullYear() && currentMonth === today.getMonth()}">
+      <button type="button" @click="changeMonth(-1)" class="p-2 text-textMuted hover:text-white transition-colors" :class="{'opacity-50 cursor-not-allowed': currentYear === today.getFullYear() && currentMonth === today.getMonth()}">
         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M15 19l-7-7 7-7" /></svg>
       </button>
       
@@ -102,7 +102,7 @@ const selectDate = (day: any) => {
         {{ currentMonthName }} <span class="text-primary font-light">{{ currentYear }}</span>
       </div>
 
-      <button @click="changeMonth(1)" class="p-2 text-textMuted hover:text-white transition-colors">
+      <button type="button" @click="changeMonth(1)" class="p-2 text-textMuted hover:text-white transition-colors">
         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M9 5l7 7-7 7" /></svg>
       </button>
     </div>
@@ -119,6 +119,7 @@ const selectDate = (day: any) => {
       <div v-for="(day, index) in calendarDays" :key="index" class="relative group/day">
         <button 
           v-if="day"
+          type="button"
           @click="selectDate(day)"
           :disabled="!day.isAvailable"
           :class="[
