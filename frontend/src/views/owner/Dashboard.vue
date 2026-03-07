@@ -281,10 +281,10 @@ const formatDate = (isoString: string) => new Date(isoString).toLocaleDateString
 </script>
 
 <template>
-  <div class="flex-1 w-full max-w-[1400px] mx-auto p-4 md:p-10 pt-8 flex flex-col md:flex-row gap-8 lg:gap-16 min-h-screen relative overflow-hidden">
+  <div class="flex-1 w-full max-w-[1400px] mx-auto p-4 sm:p-6 md:p-10 pt-6 md:pt-8 flex flex-col md:flex-row gap-6 md:gap-8 lg:gap-16 min-h-screen relative overflow-hidden">
     
     <!-- Ultra luxe background elements -->
-    <div class="absolute inset-0 z-0 opacity-[0.03] pointer-events-none" style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.85%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22/%3E%3C/svg%3E');"></div>
+    <div class="absolute inset-0 z-0 opacity-[0.02] pointer-events-none" style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.85%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22/%3E%3C/svg%3E');"></div>
     <div class="absolute -top-32 -left-32 w-[600px] h-[600px] bg-primary/5 blur-[120px] rounded-full pointer-events-none mix-blend-screen"></div>
 
     <!-- Sidebar / Nav -->
@@ -297,23 +297,23 @@ const formatDate = (isoString: string) => new Date(isoString).toLocaleDateString
       <nav class="flex md:flex-col gap-2 overflow-x-auto pb-4 md:pb-0">
         <button 
           @click="activeTab = 'appointments'" 
-          :class="['px-6 py-4 text-left border-l-2 transition-all duration-500 uppercase tracking-widest text-xs font-semibold', activeTab === 'appointments' ? 'border-primary text-primary bg-primary/5' : 'border-transparent text-textMuted hover:text-white hover:border-white/20']">
+          :class="['px-6 py-4 text-left border-l-2 transition-all duration-500 uppercase tracking-widest text-xs font-semibold', activeTab === 'appointments' ? 'border-primary text-primary bg-primary/5' : 'border-transparent text-textMuted hover:text-brandDark hover:border-primary/30']">
           Agenda
         </button>
         <button 
           @click="activeTab = 'services'" 
-          :class="['px-6 py-4 text-left border-l-2 transition-all duration-500 uppercase tracking-widest text-xs font-semibold', activeTab === 'services' ? 'border-primary text-primary bg-primary/5' : 'border-transparent text-textMuted hover:text-white hover:border-white/20']">
+          :class="['px-6 py-4 text-left border-l-2 transition-all duration-500 uppercase tracking-widest text-xs font-semibold', activeTab === 'services' ? 'border-primary text-primary bg-primary/5' : 'border-transparent text-textMuted hover:text-brandDark hover:border-primary/30']">
           Catálogo de servicios
         </button>
         <button 
           @click="activeTab = 'staff'" 
-          :class="['px-6 py-4 text-left border-l-2 transition-all duration-500 uppercase tracking-widest text-xs font-semibold', activeTab === 'staff' ? 'border-primary text-primary bg-primary/5' : 'border-transparent text-textMuted hover:text-white hover:border-white/20']">
+          :class="['px-6 py-4 text-left border-l-2 transition-all duration-500 uppercase tracking-widest text-xs font-semibold', activeTab === 'staff' ? 'border-primary text-primary bg-primary/5' : 'border-transparent text-textMuted hover:text-brandDark hover:border-primary/30']">
           Personal
         </button>
       </nav>
 
       <div class="mt-auto pt-16">
-        <button @click="logout" class="w-full px-6 py-4 border border-white/10 hover:border-textMuted text-xs font-semibold tracking-widest uppercase text-textMuted hover:text-white transition-all">
+        <button @click="logout" class="w-full px-6 py-4 border border-border hover:border-primary/40 text-xs font-semibold tracking-widest uppercase text-textMuted hover:text-brandDark transition-all rounded-md bg-surface">
           Cerrar sesión
         </button>
       </div>
@@ -330,7 +330,7 @@ const formatDate = (isoString: string) => new Date(isoString).toLocaleDateString
 
       <!-- Agenda View -->
       <div v-show="activeTab === 'appointments'" class="animate-fade-in-up delay-100 h-full flex flex-col">
-        <header class="flex justify-between items-end border-b border-white/10 pb-6 mb-8">
+        <header class="flex justify-between items-end border-b border-border pb-6 mb-8">
           <div>
             <h3 class="font-display text-2xl text-white">Agenda de hoy</h3>
             <p class="text-textMuted text-xs uppercase tracking-widest mt-2 font-light">Seguimiento de citas en tiempo real</p>
@@ -338,13 +338,13 @@ const formatDate = (isoString: string) => new Date(isoString).toLocaleDateString
           <button @click="openBookingModal" class="btn-primary px-6 py-2 tracking-widest text-[10px] uppercase">+ Nueva reserva</button>
         </header>
         
-        <div v-if="appointments.length === 0" class="flex-1 flex flex-col items-center justify-center py-32 border border-white/5 bg-black/20">
+        <div v-if="appointments.length === 0" class="flex-1 flex flex-col items-center justify-center py-32 border border-border bg-surface rounded-xl">
           <div class="w-16 h-[1px] bg-primary/30 mb-6"></div>
           <p class="text-textMuted font-light uppercase tracking-widest text-sm text-center text-balance">La agenda está vacía.<br/>No hay reservas para hoy.</p>
         </div>
 
         <div v-else class="space-y-4">
-          <div v-for="app in appointments" :key="app.id" class="p-6 bg-black/40 border border-white/5 hover:border-primary/30 hover:bg-black/60 transition-all duration-500 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden group">
+          <div v-for="app in appointments" :key="app.id" class="p-6 bg-surface border border-border hover:border-primary/30 hover:bg-surfaceHover transition-all duration-500 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden group rounded-xl">
             <div class="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
             
             <div class="flex gap-6 items-center">
@@ -353,7 +353,7 @@ const formatDate = (isoString: string) => new Date(isoString).toLocaleDateString
                 <span class="block text-xs text-textMuted uppercase tracking-widest mt-1">{{ formatDate(app.start_datetime_utc) }}</span>
               </div>
               
-              <div class="w-px h-12 bg-white/10 hidden md:block"></div>
+              <div class="w-px h-12 bg-border hidden md:block"></div>
 
               <div>
                 <h4 class="font-display text-lg text-white mb-1">{{ app.service.name }}</h4>
@@ -369,10 +369,10 @@ const formatDate = (isoString: string) => new Date(isoString).toLocaleDateString
               </span>
               
               <div v-if="app.status === 'CONFIRMED'" class="flex gap-3">
-                <button @click="updateAppointmentStatus(app.id, 'COMPLETED')" class="w-10 h-10 border border-white/10 hover:border-primary text-textMuted hover:text-primary flex items-center justify-center transition-all bg-black/50 tooltip" title="Marcar como completada">
+                <button @click="updateAppointmentStatus(app.id, 'COMPLETED')" class="w-10 h-10 border border-border hover:border-primary text-textMuted hover:text-primary flex items-center justify-center transition-all bg-surface tooltip rounded-md" title="Marcar como completada">
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M5 13l4 4L19 7" /></svg>
                 </button>
-                <button @click="updateAppointmentStatus(app.id, 'CANCELLED')" class="w-10 h-10 border border-white/10 hover:border-red-500/50 text-textMuted hover:text-red-400 flex items-center justify-center transition-all bg-black/50 tooltip" title="Cancelar">
+                <button @click="updateAppointmentStatus(app.id, 'CANCELLED')" class="w-10 h-10 border border-border hover:border-red-400 text-textMuted hover:text-red-600 flex items-center justify-center transition-all bg-surface tooltip rounded-md" title="Cancelar">
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
               </div>
@@ -383,13 +383,13 @@ const formatDate = (isoString: string) => new Date(isoString).toLocaleDateString
 
       <!-- Services View -->
       <div v-show="activeTab === 'services'" class="animate-fade-in-up delay-100">
-        <header class="flex justify-between items-end border-b border-white/10 pb-6 mb-8">
+        <header class="flex justify-between items-end border-b border-border pb-6 mb-8">
           <div>
             <h3 class="font-display text-2xl text-white">Portafolio de servicios</h3>
           </div>
-          <button v-if="services.length > 0" @click="openAddServiceModal" class="text-primary text-xs tracking-widest uppercase border-b border-primary/30 pb-1 hover:text-white transition-colors">+ Añadir servicio</button>
+          <button v-if="services.length > 0" @click="openAddServiceModal" class="text-primary text-xs tracking-widest uppercase border-b border-primary/30 pb-1 hover:text-brandDark transition-colors">+ Añadir servicio</button>
         </header>
-        <div v-if="services.length === 0" class="flex-1 flex flex-col items-center justify-center p-12 border border-white/5 bg-black/20 text-center animate-fade-in-up">
+        <div v-if="services.length === 0" class="flex-1 flex flex-col items-center justify-center p-12 border border-border bg-surface text-center animate-fade-in-up rounded-xl">
           <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-6 border border-primary/20">
             <svg class="w-8 h-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M12 4v16m8-8H4" /></svg>
           </div>
@@ -399,7 +399,7 @@ const formatDate = (isoString: string) => new Date(isoString).toLocaleDateString
         </div>
 
         <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div v-for="srv in services" :key="srv.id" @click="openEditServiceModal(srv)" class="cursor-pointer p-6 bg-black/40 border border-white/5 relative overflow-hidden group hover:border-white/20 transition-colors">
+          <div v-for="srv in services" :key="srv.id" @click="openEditServiceModal(srv)" class="cursor-pointer p-6 bg-surface border border-border relative overflow-hidden group hover:border-primary/30 transition-colors rounded-xl">
             <h4 class="font-display text-xl text-white mb-4">{{ srv.name }}</h4>
             <div class="flex items-center gap-6">
               <span class="text-xs uppercase tracking-widest text-textMuted font-light">{{ srv.duration_min }} MIN</span>
@@ -411,13 +411,13 @@ const formatDate = (isoString: string) => new Date(isoString).toLocaleDateString
 
       <!-- Staff View -->
       <div v-show="activeTab === 'staff'" class="animate-fade-in-up delay-100">
-        <header class="flex justify-between items-end border-b border-white/10 pb-6 mb-8">
+        <header class="flex justify-between items-end border-b border-border pb-6 mb-8">
           <div>
             <h3 class="font-display text-2xl text-white">Personal</h3>
           </div>
-          <button v-if="staff.length > 0" @click="openAddStaffModal" class="text-primary text-xs tracking-widest uppercase border-b border-primary/30 pb-1 hover:text-white transition-colors">+ Añadir profesional</button>
+          <button v-if="staff.length > 0" @click="openAddStaffModal" class="text-primary text-xs tracking-widest uppercase border-b border-primary/30 pb-1 hover:text-brandDark transition-colors">+ Añadir profesional</button>
         </header>
-        <div v-if="staff.length === 0" class="flex-1 flex flex-col items-center justify-center p-12 border border-white/5 bg-black/20 text-center animate-fade-in-up">
+        <div v-if="staff.length === 0" class="flex-1 flex flex-col items-center justify-center p-12 border border-border bg-surface text-center animate-fade-in-up rounded-xl">
           <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-6 border border-primary/20">
             <svg class="w-8 h-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
           </div>
@@ -427,14 +427,14 @@ const formatDate = (isoString: string) => new Date(isoString).toLocaleDateString
         </div>
 
         <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div v-for="st in staff" :key="st.id" @click="openEditStaffModal(st)" class="cursor-pointer p-6 bg-black/40 border border-white/5 flex items-center gap-6 group hover:border-white/20 transition-colors">
-            <div class="w-14 h-14 bg-gradient-to-tr from-surface to-[#1f1f1f] border border-white/10 flex items-center justify-center font-display text-xl text-white">
+          <div v-for="st in staff" :key="st.id" @click="openEditStaffModal(st)" class="cursor-pointer p-6 bg-surface border border-border flex items-center gap-6 group hover:border-primary/30 transition-colors rounded-xl">
+            <div class="w-14 h-14 bg-gradient-to-tr from-surfaceHover to-border border border-border flex items-center justify-center font-display text-xl text-brandDark rounded-lg">
               {{ st.user.name.charAt(0) }}
             </div>
             <div>
               <h4 class="font-display text-lg text-white mb-1">{{ st.user.name }}</h4>
               <p class="text-xs text-textMuted uppercase tracking-widest mb-2 font-light">{{ st.user.email }}</p>
-              <span :class="['text-[10px] px-2 py-1 uppercase tracking-widest', st.is_active ? 'bg-primary/10 text-primary border border-primary/20' : 'bg-white/5 text-textMuted border border-white/10']">
+                <span :class="['text-[10px] px-2 py-1 uppercase tracking-widest rounded', st.is_active ? 'bg-primary/10 text-primary border border-primary/20' : 'bg-surfaceHover text-textMuted border border-border']">
                   {{ st.is_active ? 'Activo' : 'Inactivo' }}
               </span>
             </div>
@@ -445,9 +445,9 @@ const formatDate = (isoString: string) => new Date(isoString).toLocaleDateString
       <!-- Create/Edit Service Modal -->
       <div v-if="showServiceModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-background/80 backdrop-blur-sm" @click="showServiceModal = false"></div>
-        <div class="w-full max-w-lg bg-[#0a0a0a] border border-white/10 p-8 sm:p-12 relative z-10 shadow-2xl animate-fade-in-up">
+        <div class="w-full max-w-lg bg-surface border border-border p-8 sm:p-12 relative z-10 shadow-xl animate-fade-in-up rounded-xl">
           <h2 class="font-display text-3xl text-white mb-2">{{ editingServiceId ? 'Editar servicio' : 'Nuevo servicio' }}</h2>
-          <p class="text-textMuted uppercase tracking-widest text-xs font-light mb-8 border-b border-white/10 pb-6">Amplía tu catálogo de servicios</p>
+          <p class="text-textMuted uppercase tracking-widest text-xs font-light mb-8 border-b border-border pb-6">Amplía tu catálogo de servicios</p>
           <form @submit.prevent="handleSaveService" class="space-y-6">
             <input v-model="newService.name" type="text" placeholder="NOMBRE DEL SERVICIO" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
             <input v-model="newService.description" type="text" placeholder="DESCRIPCIÓN (OPCIONAL)" class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
@@ -457,23 +457,23 @@ const formatDate = (isoString: string) => new Date(isoString).toLocaleDateString
             </div>
 
             <!-- Assigned Staff Checkboxes -->
-            <div class="pt-4 border-t border-white/5">
+            <div class="pt-4 border-t border-border">
               <label class="block text-primary uppercase tracking-widest text-[10px] mb-4 font-semibold">Profesionales asignados</label>
               <div v-if="staff.length === 0" class="text-textMuted text-xs font-light">
                 Todavía no hay profesionales disponibles.
               </div>
               <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-48 overflow-y-auto custom-scrollbar pr-2">
-                <label v-for="st in staff" :key="st.id" class="flex items-center gap-3 p-3 bg-black/30 border border-white/5 hover:border-primary/30 cursor-pointer transition-colors group">
+                <label v-for="st in staff" :key="st.id" class="flex items-center gap-3 p-3 bg-surface border border-border hover:border-primary/30 cursor-pointer transition-colors group rounded-md">
                   <input type="checkbox" v-model="newService.staff_ids" :value="st.id" class="accent-primary w-4 h-4" />
                   <div class="flex flex-col">
-                    <span class="text-xs text-white group-hover:text-primary transition-colors">{{ st.user.name }}</span>
+                    <span class="text-xs text-text group-hover:text-primary transition-colors">{{ st.user.name }}</span>
                     <span class="text-[10px] text-textMuted uppercase tracking-widest">{{ st.user.email }}</span>
                   </div>
                 </label>
               </div>
             </div>
 
-            <div class="flex justify-end gap-4 mt-8 pt-6 border-t border-white/10">
+            <div class="flex justify-end gap-4 mt-8 pt-6 border-t border-border">
               <button type="button" @click="showServiceModal = false" class="btn-secondary px-8 py-3 tracking-widest text-[10px]">Cancelar</button>
               <button type="submit" class="btn-primary px-8 py-3 tracking-widest text-[10px]">{{ editingServiceId ? 'Guardar cambios' : 'Crear servicio' }}</button>
             </div>
@@ -484,31 +484,31 @@ const formatDate = (isoString: string) => new Date(isoString).toLocaleDateString
       <!-- Create/Edit Staff Modal -->
       <div v-if="showStaffModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-background/80 backdrop-blur-sm" @click="showStaffModal = false"></div>
-        <div class="w-full max-w-lg bg-[#0a0a0a] border border-white/10 p-8 sm:p-12 relative z-10 shadow-2xl animate-fade-in-up">
+        <div class="w-full max-w-lg bg-surface border border-border p-8 sm:p-12 relative z-10 shadow-xl animate-fade-in-up rounded-xl">
           <h2 class="font-display text-3xl text-white mb-2">{{ editingStaffId ? 'Editar profesional' : 'Nuevo profesional' }}</h2>
-          <p class="text-textMuted uppercase tracking-widest text-xs font-light mb-8 border-b border-white/10 pb-6">Gestiona tu equipo</p>
+          <p class="text-textMuted uppercase tracking-widest text-xs font-light mb-8 border-b border-border pb-6">Gestiona tu equipo</p>
           <form @submit.prevent="handleSaveStaff" class="space-y-6">
             <input v-if="!editingStaffId" v-model="newStaff.name" type="text" placeholder="NOMBRE COMPLETO" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
             <input v-if="!editingStaffId" v-model="newStaff.email" type="email" placeholder="CORREO DE ACCESO" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
             <input v-if="!editingStaffId" v-model="newStaff.password" type="password" placeholder="CONTRASEÑA INICIAL" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
             
-            <div class="pt-4 border-t border-white/5">
+            <div class="pt-4 border-t border-border">
               <label class="block text-primary uppercase tracking-widest text-[10px] mb-4 font-semibold">Servicios asignados</label>
               <div v-if="services.length === 0" class="text-textMuted text-xs font-light">
                 No hay servicios disponibles todavía. Crea primero un servicio en el catálogo.
               </div>
               <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-48 overflow-y-auto custom-scrollbar pr-2">
-                <label v-for="srv in services" :key="srv.id" class="flex items-center gap-3 p-3 bg-black/30 border border-white/5 hover:border-primary/30 cursor-pointer transition-colors group">
+                <label v-for="srv in services" :key="srv.id" class="flex items-center gap-3 p-3 bg-surface border border-border hover:border-primary/30 cursor-pointer transition-colors group rounded-md">
                   <input type="checkbox" v-model="newStaff.service_ids" :value="srv.id" class="accent-primary w-4 h-4" />
                   <div class="flex flex-col">
-                    <span class="text-xs text-white group-hover:text-primary transition-colors">{{ srv.name }}</span>
+                    <span class="text-xs text-text group-hover:text-primary transition-colors">{{ srv.name }}</span>
                     <span class="text-[10px] text-textMuted uppercase tracking-widest">{{ srv.duration_min }} MIN</span>
                   </div>
                 </label>
               </div>
             </div>
 
-            <div class="flex justify-end gap-4 mt-8 pt-6 border-t border-white/10">
+            <div class="flex justify-end gap-4 mt-8 pt-6 border-t border-border">
               <button type="button" @click="showStaffModal = false" class="btn-secondary px-8 py-3 tracking-widest text-[10px]">Cancelar</button>
               <button type="submit" class="btn-primary px-8 py-3 tracking-widest text-[10px]">{{ editingStaffId ? 'Guardar cambios' : 'Registrar profesional' }}</button>
             </div>
@@ -519,20 +519,20 @@ const formatDate = (isoString: string) => new Date(isoString).toLocaleDateString
       <!-- Create Booking Modal (Internal) -->
       <div v-if="showBookingModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-background/80 backdrop-blur-sm" @click="showBookingModal = false"></div>
-        <div class="w-full max-w-lg bg-[#0a0a0a] border border-white/10 p-8 sm:p-12 relative z-10 shadow-2xl animate-fade-in-up">
+        <div class="w-full max-w-lg bg-surface border border-border p-8 sm:p-12 relative z-10 shadow-xl animate-fade-in-up rounded-xl">
           <h2 class="font-display text-3xl text-white mb-2">Reserva interna</h2>
-          <p class="text-textMuted uppercase tracking-widest text-xs font-light mb-8 border-b border-white/10 pb-6">Asigna manualmente un cliente en la agenda</p>
+          <p class="text-textMuted uppercase tracking-widest text-xs font-light mb-8 border-b border-border pb-6">Asigna manualmente un cliente en la agenda</p>
           
           <form @submit.prevent="handleSaveBooking" class="space-y-6">
             <input v-model="newBooking.clientName" type="text" placeholder="NOMBRE DEL CLIENTE" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
             <input v-model="newBooking.clientEmail" type="email" placeholder="CORREO DEL CLIENTE" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
             
             <div class="grid grid-cols-2 gap-4">
-              <select v-model="newBooking.serviceId" @change="handleServiceStaffChange" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest text-white">
+              <select v-model="newBooking.serviceId" @change="handleServiceStaffChange" required class="input-premium text-xs tracking-widest text-text">
                 <option value="" disabled selected>SERVICIO</option>
                 <option v-for="s in services" :key="s.id" :value="s.id">{{ s.name }}</option>
               </select>
-              <select v-model="newBooking.staffId" @change="handleServiceStaffChange" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest text-white">
+              <select v-model="newBooking.staffId" @change="handleServiceStaffChange" required class="input-premium text-xs tracking-widest text-text">
                 <option value="" disabled selected>PROFESIONAL</option>
                 <option v-for="st in staff" :key="st.id" :value="st.id">{{ st.user.name }}</option>
               </select>
@@ -566,15 +566,15 @@ const formatDate = (isoString: string) => new Date(isoString).toLocaleDateString
                   @click="newBooking.time = slot" 
                   :class="['py-3 text-center border transition-all duration-300 text-sm font-light tracking-widest',
                     newBooking.time === slot 
-                      ? 'bg-primary text-black border-primary shadow-[0_0_15px_rgba(229,192,123,0.3)] font-medium'
-                      : 'border-white/5 bg-black/20 text-white hover:bg-primary/10 hover:border-primary/50'
+                        ? 'bg-primary text-black border-primary shadow-[0_0_12px_rgba(57,203,105,0.35)] font-medium'
+                        : 'border-border bg-surface text-text hover:bg-primary/10 hover:border-primary/50'
                   ]">
                   {{ formatTime(slot) }}
                 </button>
               </div>
             </div>
 
-            <div class="flex justify-end gap-4 mt-8 pt-6 border-t border-white/10">
+            <div class="flex justify-end gap-4 mt-8 pt-6 border-t border-border">
               <button type="button" @click="showBookingModal = false" class="btn-secondary px-8 py-3 tracking-widest text-[10px]">Cancelar</button>
               <button type="submit" class="btn-primary px-8 py-3 tracking-widest text-[10px]" :disabled="!newBooking.time">Bloquear horario</button>
             </div>

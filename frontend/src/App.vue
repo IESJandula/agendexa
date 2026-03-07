@@ -5,21 +5,21 @@
 <template>
   <div class="min-h-screen bg-background text-text font-sans flex flex-col pt-16 selection:bg-primary selection:text-black">
     <!-- Super simple top nav for MVP navigation -->
-    <nav class="fixed top-0 w-full h-16 border-b border-primary/20 glass z-50 flex items-center px-8 justify-between">
+    <nav class="fixed top-0 w-full h-16 border-b border-border glass z-50 flex items-center px-4 sm:px-8 justify-between">
       <div class="flex items-center gap-3">
         <img
           src="https://res.cloudinary.com/diaiwcmby/image/upload/c_scale,w_72,h_72,f_auto,q_auto/v1754907289/icono1_yye31j.avif"
           alt="Agendexa icon"
           class="w-9 h-9 rounded-lg"
         />
-        <router-link to="/" class="font-display font-semibold text-lg tracking-wide hover:text-primary transition-colors">AGENDEXA</router-link>
+        <router-link to="/" class="font-display font-semibold text-lg tracking-wide text-brandDark hover:text-primary transition-colors">AGENDEXA</router-link>
       </div>
-      <div class="flex gap-6 text-sm font-medium items-center">
-        <router-link to="/superadmin/login" class="text-textMuted hover:text-white transition-colors">Superadministración</router-link>
-        <router-link to="/owner/login" class="text-textMuted hover:text-white transition-colors">Acceso negocio</router-link>
-        <router-link to="/staff/login" class="text-textMuted hover:text-white transition-colors">Acceso personal</router-link>
-        <span class="w-px h-4 bg-white/10 mx-2"></span>
-        <router-link to="/client/login" class="text-primary font-medium hover:text-white transition-colors flex items-center gap-1.5">
+      <div class="flex gap-3 sm:gap-6 text-[11px] sm:text-sm font-medium items-center overflow-x-auto whitespace-nowrap max-w-[70vw] sm:max-w-none">
+        <router-link to="/superadmin/login" class="text-textMuted hover:text-brandDark transition-colors">Superadministración</router-link>
+        <router-link to="/owner/login" class="text-textMuted hover:text-brandDark transition-colors">Acceso negocio</router-link>
+        <router-link to="/staff/login" class="text-textMuted hover:text-brandDark transition-colors">Acceso personal</router-link>
+        <span class="w-px h-4 bg-border mx-2"></span>
+        <router-link to="/client/login" class="text-brandDark font-medium hover:text-primary transition-colors flex items-center gap-1.5">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
           Área Cliente
         </router-link>

@@ -8,13 +8,14 @@ export default {
         extend: {
             colors: {
                 primary: "#39CB69",
-                primaryHover: "#2FB75C",
-                background: "#015351",
-                surface: "#0A6462",
-                surfaceHover: "#0D706D",
-                text: "#F6F7F6",
-                textMuted: "#C8D8D6",
-                border: "#1B7C79"
+                primaryHover: "#22C55E",
+                background: "#F6F7F6",
+                surface: "#FFFFFF",
+                surfaceHover: "#F3F4F6",
+                text: "#060606",
+                textMuted: "#4B6867",
+                border: "#E5E7EB",
+                brandDark: "#015351"
             },
             fontFamily: {
                 sans: ['"Plus Jakarta Sans"', 'sans-serif'],

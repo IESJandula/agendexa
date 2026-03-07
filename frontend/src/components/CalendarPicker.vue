@@ -88,21 +88,21 @@ const selectDate = (day: any) => {
 </script>
 
 <template>
-  <div class="w-full bg-black/40 border border-white/5 relative overflow-hidden group">
+  <div class="w-full bg-surface border border-border rounded-lg relative overflow-hidden group">
     <!-- Luxe background effects -->
     <div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none"></div>
 
     <!-- Header -->
-    <div class="flex items-center justify-between p-4 border-b border-white/5">
-      <button type="button" @click="changeMonth(-1)" class="p-2 text-textMuted hover:text-white transition-colors" :class="{'opacity-50 cursor-not-allowed': currentYear === today.getFullYear() && currentMonth === today.getMonth()}">
+    <div class="flex items-center justify-between p-4 border-b border-border">
+      <button type="button" @click="changeMonth(-1)" class="p-2 text-textMuted hover:text-brandDark transition-colors" :class="{'opacity-50 cursor-not-allowed': currentYear === today.getFullYear() && currentMonth === today.getMonth()}">
         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M15 19l-7-7 7-7" /></svg>
       </button>
       
-      <div class="font-display font-medium text-lg uppercase tracking-widest text-white">
+      <div class="font-display font-medium text-lg uppercase tracking-widest text-text">
         {{ currentMonthName }} <span class="text-primary font-light">{{ currentYear }}</span>
       </div>
 
-      <button type="button" @click="changeMonth(1)" class="p-2 text-textMuted hover:text-white transition-colors">
+      <button type="button" @click="changeMonth(1)" class="p-2 text-textMuted hover:text-brandDark transition-colors">
         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M9 5l7 7-7 7" /></svg>
       </button>
     </div>
@@ -125,12 +125,12 @@ const selectDate = (day: any) => {
           :class="[
             'w-full aspect-square flex items-center justify-center text-sm transition-all duration-300 relative border z-10',
             day.isoDate === selectedDate 
-              ? 'bg-primary text-black border-primary shadow-[0_0_15px_rgba(229,192,123,0.3)] font-medium' 
+              ? 'bg-primary text-black border-primary shadow-[0_0_12px_rgba(57,203,105,0.35)] font-medium' 
               : day.isAvailable 
-                ? 'bg-primary/5 text-white border-primary/20 hover:bg-primary/20 hover:border-primary/40 cursor-pointer' 
+                ? 'bg-primary/5 text-text border-primary/20 hover:bg-primary/15 hover:border-primary/50 cursor-pointer' 
                 : day.isPast
-                  ? 'bg-transparent text-white/10 border-transparent cursor-not-allowed'
-                  : 'bg-red-500/5 text-textMuted border-red-500/10 cursor-not-allowed hidden-diagonal'
+                  ? 'bg-transparent text-textMuted/50 border-transparent cursor-not-allowed'
+                  : 'bg-red-500/5 text-textMuted border-red-500/20 cursor-not-allowed hidden-diagonal'
           ]"
         >
           <!-- Red cross diagonal for unavailable future days -->

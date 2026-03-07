@@ -37,14 +37,14 @@ const handleLogin = async () => {
 
 <template>
   <div class="min-h-screen bg-background flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
-    <!-- Dark decorative background -->
+    <!-- Decorative background -->
     <div class="absolute inset-0 pointer-events-none">
       <div class="absolute -top-[10%] -right-[10%] w-[50%] h-[50%] bg-primary/20 blur-[150px] rounded-full mix-blend-screen"></div>
       <div class="absolute -bottom-[10%] -left-[10%] w-[50%] h-[50%] bg-primary/10 blur-[150px] rounded-full mix-blend-screen"></div>
     </div>
 
     <div class="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-      <h2 class="mt-6 text-center text-4xl font-display font-semibold tracking-wide text-white">
+      <h2 class="mt-6 text-center text-4xl font-display font-semibold tracking-wide text-text">
         Portal del personal
       </h2>
       <p class="mt-2 text-center text-sm text-textMuted font-light">
@@ -53,7 +53,7 @@ const handleLogin = async () => {
     </div>
 
     <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-md relative z-10 animate-fade-in-up" style="animation-delay: 0.1s;">
-      <div class="bg-surface border border-white/5 py-10 px-8 shadow-2xl sm:rounded-xl backdrop-blur-sm">
+      <div class="bg-surface border border-border py-10 px-8 shadow-xl sm:rounded-xl backdrop-blur-sm">
         <form class="space-y-6" @submit.prevent="handleLogin">
           <div>
             <label for="email" class="block text-xs font-semibold uppercase tracking-widest text-textMuted mb-2">
@@ -65,7 +65,7 @@ const handleLogin = async () => {
                 v-model="email" 
                 type="email" 
                 required 
-                class="block w-full appearance-none rounded-none border-0 border-b border-white/20 bg-transparent px-0 py-3 text-white placeholder-white/30 focus:border-primary focus:ring-0 transition-colors sm:text-sm" 
+                class="block w-full appearance-none rounded-none border-0 border-b border-border bg-transparent px-0 py-3 text-text placeholder-textMuted focus:border-primary focus:ring-0 transition-colors sm:text-sm" 
                 placeholder="staff@booksy-mvp.com" 
               />
             </div>
@@ -81,27 +81,27 @@ const handleLogin = async () => {
                 v-model="password" 
                 type="password" 
                 required 
-                class="block w-full appearance-none rounded-none border-0 border-b border-white/20 bg-transparent px-0 py-3 text-white placeholder-white/30 focus:border-primary focus:ring-0 transition-colors sm:text-sm" 
+                class="block w-full appearance-none rounded-none border-0 border-b border-border bg-transparent px-0 py-3 text-text placeholder-textMuted focus:border-primary focus:ring-0 transition-colors sm:text-sm" 
                 placeholder="••••••••" 
               />
             </div>
           </div>
 
-          <div v-if="errorMsg" class="text-red-100 text-sm text-center p-3 rounded-md bg-red-500/15 border border-red-400/40">
+          <div v-if="errorMsg" class="text-red-700 text-sm text-center p-3 rounded-md bg-red-50 border border-red-200">
             {{ errorMsg }}
           </div>
 
           <div>
             <button 
               type="submit" 
-              class="group relative flex w-full justify-center border border-transparent bg-primary px-4 py-3 text-sm font-semibold uppercase tracking-widest text-black hover:bg-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
+              class="group relative flex w-full justify-center border border-transparent bg-primary px-4 py-3 text-sm font-semibold uppercase tracking-widest text-black hover:bg-primaryHover transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
             >
               Entrar al panel
             </button>
           </div>
           
           <div class="mt-6 text-center">
-             <router-link to="/" class="text-textMuted hover:text-white transition-colors text-sm">
+             <router-link to="/" class="text-textMuted hover:text-brandDark transition-colors text-sm">
                &larr; Volver a reservas
              </router-link>
           </div>
