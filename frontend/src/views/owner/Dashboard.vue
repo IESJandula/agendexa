@@ -443,12 +443,12 @@ const formatDate = (isoString: string) => new Date(isoString).toLocaleDateString
       </div>
 
       <!-- Create/Edit Service Modal -->
-      <div v-if="showServiceModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div v-if="showServiceModal" class="fixed inset-0 z-50 flex items-start justify-center px-4 pt-16 pb-8 sm:px-6 sm:pt-20 sm:pb-10 md:px-8 md:pt-24 md:pb-12 overflow-y-auto">
         <div class="absolute inset-0 bg-background/80 backdrop-blur-sm" @click="showServiceModal = false"></div>
-        <div class="w-full max-w-lg bg-surface border border-border p-8 sm:p-12 relative z-10 shadow-xl animate-fade-in-up rounded-xl">
+        <div class="w-full max-w-lg my-2 sm:my-3 max-h-[calc(100dvh-5rem)] sm:max-h-[calc(100dvh-7rem)] overflow-y-auto custom-scrollbar bg-surface border border-border px-6 py-8 sm:px-10 sm:py-10 relative z-10 shadow-xl animate-fade-in-up rounded-xl">
           <h2 class="font-display text-3xl text-white mb-2">{{ editingServiceId ? 'Editar servicio' : 'Nuevo servicio' }}</h2>
           <p class="text-textMuted uppercase tracking-widest text-xs font-light mb-8 border-b border-border pb-6">Amplía tu catálogo de servicios</p>
-          <form @submit.prevent="handleSaveService" class="space-y-6">
+          <form @submit.prevent="handleSaveService" class="space-y-6 pb-2">
             <input v-model="newService.name" type="text" placeholder="NOMBRE DEL SERVICIO" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
             <input v-model="newService.description" type="text" placeholder="DESCRIPCIÓN (OPCIONAL)" class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
             <div class="grid grid-cols-2 gap-4">
@@ -473,7 +473,7 @@ const formatDate = (isoString: string) => new Date(isoString).toLocaleDateString
               </div>
             </div>
 
-            <div class="flex justify-end gap-4 mt-8 pt-6 border-t border-border">
+            <div class="sticky bottom-0 bg-surface/95 backdrop-blur-sm flex justify-end gap-4 mt-10 pt-6 pb-2 border-t border-border">
               <button type="button" @click="showServiceModal = false" class="btn-secondary px-8 py-3 tracking-widest text-[10px]">Cancelar</button>
               <button type="submit" class="btn-primary px-8 py-3 tracking-widest text-[10px]">{{ editingServiceId ? 'Guardar cambios' : 'Crear servicio' }}</button>
             </div>
@@ -482,12 +482,12 @@ const formatDate = (isoString: string) => new Date(isoString).toLocaleDateString
       </div>
 
       <!-- Create/Edit Staff Modal -->
-      <div v-if="showStaffModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div v-if="showStaffModal" class="fixed inset-0 z-50 flex items-start justify-center px-4 pt-16 pb-8 sm:px-6 sm:pt-20 sm:pb-10 md:px-8 md:pt-24 md:pb-12 overflow-y-auto">
         <div class="absolute inset-0 bg-background/80 backdrop-blur-sm" @click="showStaffModal = false"></div>
-        <div class="w-full max-w-lg bg-surface border border-border p-8 sm:p-12 relative z-10 shadow-xl animate-fade-in-up rounded-xl">
+        <div class="w-full max-w-lg my-2 sm:my-3 max-h-[calc(100dvh-5rem)] sm:max-h-[calc(100dvh-7rem)] overflow-y-auto custom-scrollbar bg-surface border border-border px-6 py-8 sm:px-10 sm:py-10 relative z-10 shadow-xl animate-fade-in-up rounded-xl">
           <h2 class="font-display text-3xl text-white mb-2">{{ editingStaffId ? 'Editar profesional' : 'Nuevo profesional' }}</h2>
           <p class="text-textMuted uppercase tracking-widest text-xs font-light mb-8 border-b border-border pb-6">Gestiona tu equipo</p>
-          <form @submit.prevent="handleSaveStaff" class="space-y-6">
+          <form @submit.prevent="handleSaveStaff" class="space-y-6 pb-2">
             <input v-if="!editingStaffId" v-model="newStaff.name" type="text" placeholder="NOMBRE COMPLETO" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
             <input v-if="!editingStaffId" v-model="newStaff.email" type="email" placeholder="CORREO DE ACCESO" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
             <input v-if="!editingStaffId" v-model="newStaff.password" type="password" placeholder="CONTRASEÑA INICIAL" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
@@ -508,7 +508,7 @@ const formatDate = (isoString: string) => new Date(isoString).toLocaleDateString
               </div>
             </div>
 
-            <div class="flex justify-end gap-4 mt-8 pt-6 border-t border-border">
+            <div class="sticky bottom-0 bg-surface/95 backdrop-blur-sm flex justify-end gap-4 mt-10 pt-6 pb-2 border-t border-border">
               <button type="button" @click="showStaffModal = false" class="btn-secondary px-8 py-3 tracking-widest text-[10px]">Cancelar</button>
               <button type="submit" class="btn-primary px-8 py-3 tracking-widest text-[10px]">{{ editingStaffId ? 'Guardar cambios' : 'Registrar profesional' }}</button>
             </div>
@@ -517,13 +517,13 @@ const formatDate = (isoString: string) => new Date(isoString).toLocaleDateString
       </div>
 
       <!-- Create Booking Modal (Internal) -->
-      <div v-if="showBookingModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div v-if="showBookingModal" class="fixed inset-0 z-50 flex items-start justify-center px-4 pt-16 pb-8 sm:px-6 sm:pt-20 sm:pb-10 md:px-8 md:pt-24 md:pb-12 overflow-y-auto">
         <div class="absolute inset-0 bg-background/80 backdrop-blur-sm" @click="showBookingModal = false"></div>
-        <div class="w-full max-w-lg bg-surface border border-border p-8 sm:p-12 relative z-10 shadow-xl animate-fade-in-up rounded-xl">
+        <div class="w-full max-w-lg my-2 sm:my-3 max-h-[calc(100dvh-5rem)] sm:max-h-[calc(100dvh-7rem)] overflow-y-auto custom-scrollbar bg-surface border border-border px-6 py-8 sm:px-10 sm:py-10 relative z-10 shadow-xl animate-fade-in-up rounded-xl">
           <h2 class="font-display text-3xl text-white mb-2">Reserva interna</h2>
           <p class="text-textMuted uppercase tracking-widest text-xs font-light mb-8 border-b border-border pb-6">Asigna manualmente un cliente en la agenda</p>
           
-          <form @submit.prevent="handleSaveBooking" class="space-y-6">
+          <form @submit.prevent="handleSaveBooking" class="space-y-6 pb-2">
             <input v-model="newBooking.clientName" type="text" placeholder="NOMBRE DEL CLIENTE" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
             <input v-model="newBooking.clientEmail" type="email" placeholder="CORREO DEL CLIENTE" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
             
@@ -574,7 +574,7 @@ const formatDate = (isoString: string) => new Date(isoString).toLocaleDateString
               </div>
             </div>
 
-            <div class="flex justify-end gap-4 mt-8 pt-6 border-t border-border">
+            <div class="sticky bottom-0 bg-surface/95 backdrop-blur-sm flex justify-end gap-4 mt-10 pt-6 pb-2 border-t border-border">
               <button type="button" @click="showBookingModal = false" class="btn-secondary px-8 py-3 tracking-widest text-[10px]">Cancelar</button>
               <button type="submit" class="btn-primary px-8 py-3 tracking-widest text-[10px]" :disabled="!newBooking.time">Bloquear horario</button>
             </div>

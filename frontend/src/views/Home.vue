@@ -32,7 +32,7 @@ const handleSearch = () => {
 </script>
 
 <template>
-  <div class="flex flex-col items-center justify-center flex-1 px-4 sm:px-8 relative overflow-hidden w-full min-h-screen">
+  <div class="flex flex-col items-center justify-center flex-1 px-4 sm:px-8 pt-8 pb-10 sm:pb-14 relative overflow-hidden w-full min-h-screen">
     
     <!-- Background Texture & Grain -->
     <div class="absolute inset-0 z-0 opacity-[0.02] pointer-events-none" style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E');"></div>
@@ -71,7 +71,7 @@ const handleSearch = () => {
       </div>
       
       <!-- Search Engine Box -->
-      <div class="mt-14 sm:mt-20 w-full max-w-2xl px-1 sm:px-4 animate-fade-in-up delay-400 relative">
+      <div class="mt-14 sm:mt-20 mb-8 sm:mb-12 w-full max-w-2xl px-1 sm:px-4 animate-fade-in-up delay-400 relative">
         <label class="block text-brandDark uppercase tracking-widest text-[10px] mb-4 font-semibold text-center">Encuentra tu centro</label>
         
         <div class="relative">
@@ -107,5 +107,16 @@ const handleSearch = () => {
       </div>
 
     </div>
+
+    <footer class="z-10 w-full max-w-6xl mt-6 sm:mt-8">
+      <div class="h-px w-full bg-gradient-to-r from-transparent via-border to-transparent mb-5"></div>
+      <div class="glass px-5 sm:px-8 py-5 rounded-xl border border-border/70 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <span class="px-3 py-1 rounded-full bg-primary/15 text-brandDark border border-primary/35 text-[10px] tracking-[0.2em] uppercase font-semibold">Agendexa</span>
+          <p class="text-[11px] sm:text-xs tracking-[0.18em] uppercase text-textMuted">Reservas simples, clientes felices</p>
+        </div>
+        <p class="text-[11px] sm:text-xs tracking-[0.18em] uppercase text-textMuted">2026. Todos los derechos reservados.</p>
+      </div>
+    </footer>
   </div>
 </template>
