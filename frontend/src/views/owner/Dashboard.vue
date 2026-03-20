@@ -1,14 +1,33 @@
-<script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+﻿<script setup lang="ts">
+import { ref, onMounted, computed } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import CalendarPicker from '../../components/CalendarPicker.vue';
 
 const router = useRouter();
+const route = useRoute();
 const activeTab = ref('appointments');
 const services = ref<any[]>([]);
 const staff = ref<any[]>([]);
 const appointments = ref<any[]>([]);
 const loading = ref(true);
+const historyFilterType = ref<'days' | 'weeks'>('days');
+const historyFilterValue = ref(7);
+const businessSlug = ref('pelu');
+
+const userRaw = localStorage.getItem('user');
+let currentUser: any = null;
+try {
+  currentUser = userRaw ? JSON.parse(userRaw) : null;
+} catch {
+  currentUser = null;
+}
+const selectedBusinessId = typeof route.query.businessId === 'string' ? route.query.businessId : '';
+const selectedBusinessSlug = typeof route.query.businessSlug === 'string' ? route.query.businessSlug : '';
+const isSuperadminView = currentUser?.role === 'SUPERADMIN';
+
+if (selectedBusinessSlug) {
+  businessSlug.value = selectedBusinessSlug;
+}
 
 const showServiceModal = ref(false);
 const editingServiceId = ref<string | null>(null);
@@ -17,6 +36,35 @@ const newService = ref({ name: '', description: '', duration_min: 30, price: 0, 
 const showStaffModal = ref(false);
 const editingStaffId = ref<string | null>(null);
 const newStaff = ref({ name: '', email: '', password: '', service_ids: [] as string[] });
+
+const showScheduleModal = ref(false);
+const scheduleTargetStaffId = ref<string | null>(null);
+const scheduleTargetStaffName = ref('');
+const scheduleSaveMsg = ref('');
+
+type DayScheduleForm = {
+  day_of_week: number;
+  name: string;
+  active: boolean;
+  start_time: string;
+  end_time: string;
+  split_active: boolean;
+  split_start_time: string;
+  split_end_time: string;
+};
+
+const defaultSchedule: DayScheduleForm[] = [
+  { day_of_week: 1, name: 'Lunes', active: true, start_time: '09:00', end_time: '14:00', split_active: true, split_start_time: '16:00', split_end_time: '19:00' },
+  { day_of_week: 2, name: 'Martes', active: true, start_time: '09:00', end_time: '14:00', split_active: true, split_start_time: '16:00', split_end_time: '19:00' },
+  { day_of_week: 3, name: 'Miercoles', active: true, start_time: '09:00', end_time: '14:00', split_active: true, split_start_time: '16:00', split_end_time: '19:00' },
+  { day_of_week: 4, name: 'Jueves', active: true, start_time: '09:00', end_time: '14:00', split_active: true, split_start_time: '16:00', split_end_time: '19:00' },
+  { day_of_week: 5, name: 'Viernes', active: true, start_time: '09:00', end_time: '14:00', split_active: true, split_start_time: '16:00', split_end_time: '19:00' },
+  { day_of_week: 6, name: 'Sabado', active: false, start_time: '10:00', end_time: '14:00', split_active: false, split_start_time: '16:00', split_end_time: '18:00' },
+  { day_of_week: 0, name: 'Domingo', active: false, start_time: '10:00', end_time: '14:00', split_active: false, split_start_time: '16:00', split_end_time: '18:00' }
+];
+
+const cloneDefaultSchedule = () => JSON.parse(JSON.stringify(defaultSchedule));
+const staffScheduleForm = ref<DayScheduleForm[]>(cloneDefaultSchedule());
 
 // Booking stuff
 const showBookingModal = ref(false);
@@ -31,24 +79,99 @@ const newBooking = ref({
 const availableSlots = ref<string[]>([]);
 const monthlyAvailability = ref<Record<string, boolean>>({});
 
+const todayIso = new Date().toISOString().split('T')[0] ?? '';
+const agendaDate = ref<string>(todayIso);
+const agendaAvailabilityMap = ref<Record<string, boolean>>({});
+
+const toMinutes = (time: string) => {
+  const [h = 0, m = 0] = time.split(':').map((part) => Number(part));
+  return (h * 60) + m;
+};
+
+const hydrateScheduleForm = (schedules: any[]) => {
+  const grouped = new Map<number, any[]>();
+  for (const s of schedules || []) {
+    if (!grouped.has(s.day_of_week)) grouped.set(s.day_of_week, []);
+    grouped.get(s.day_of_week)?.push(s);
+  }
+
+  staffScheduleForm.value = cloneDefaultSchedule();
+  for (const day of staffScheduleForm.value) {
+    const ranges = (grouped.get(day.day_of_week) || []).sort((a, b) => a.start_time.localeCompare(b.start_time));
+    if (!ranges.length) {
+      day.active = false;
+      day.split_active = false;
+      continue;
+    }
+
+    day.active = true;
+    day.start_time = ranges[0].start_time;
+    day.end_time = ranges[0].end_time;
+
+    if (ranges[1]) {
+      day.split_active = true;
+      day.split_start_time = ranges[1].start_time;
+      day.split_end_time = ranges[1].end_time;
+    } else {
+      day.split_active = false;
+    }
+  }
+};
+
+const getAuthHeaders = (token: string) => {
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`
+  };
+  if (selectedBusinessId) {
+    headers['x-business-id'] = selectedBusinessId;
+  }
+  return headers;
+};
+
+const buildAgendaMonthAvailability = (year: number, month: number) => {
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const map: Record<string, boolean> = {};
+  for (let day = 1; day <= daysInMonth; day++) {
+    const d = String(day).padStart(2, '0');
+    const m = String(month).padStart(2, '0');
+    map[`${year}-${m}-${d}`] = true;
+  }
+  agendaAvailabilityMap.value = map;
+};
+
+const handleAgendaMonthChange = (year: number, month: number) => {
+  buildAgendaMonthAvailability(year, month);
+};
+
+const handleAgendaDateSelect = (date: string) => {
+  agendaDate.value = date;
+};
+
 const fetchDashboardData = async () => {
   const token = localStorage.getItem('token');
   if (!token) return router.push('/owner/login');
+  if (isSuperadminView && !selectedBusinessId) return router.push('/superadmin/dashboard');
   
   loading.value = true;
   try {
-    const headers = { 'Authorization': `Bearer ${token}` };
-    const today = new Date().toISOString().split('T')[0];
+    const headers = getAuthHeaders(token);
     
     const [appRes, srvRes, stfRes] = await Promise.all([
-      fetch(`http://localhost:3000/appointments?from=${today}`, { headers }),
+      fetch('http://localhost:3000/appointments', { headers }),
       fetch('http://localhost:3000/services', { headers }),
       fetch('http://localhost:3000/staff', { headers })
     ]);
     
-    if (appRes.ok) appointments.value = await appRes.json();
+    if (appRes.ok) {
+      appointments.value = await appRes.json();
+      if (appointments.value.length > 0 && appointments.value[0].business?.slug) {
+        businessSlug.value = appointments.value[0].business.slug;
+      }
+    }
     if (srvRes.ok) services.value = await srvRes.json();
     if (stfRes.ok) staff.value = await stfRes.json();
+    const current = new Date();
+    buildAgendaMonthAvailability(current.getFullYear(), current.getMonth() + 1);
   } catch (err) {
     console.error(err);
   } finally {
@@ -58,10 +181,11 @@ const fetchDashboardData = async () => {
 
 const updateAppointmentStatus = async (id: string, status: string) => {
   const token = localStorage.getItem('token');
+  if (!token) return;
   try {
     await fetch(`http://localhost:3000/appointments/${id}/status`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json', ...getAuthHeaders(token) },
       body: JSON.stringify({ status })
     });
     fetchDashboardData();
@@ -72,6 +196,27 @@ const updateAppointmentStatus = async (id: string, status: string) => {
 
 onMounted(() => {
   fetchDashboardData();
+});
+
+const historyAppointments = computed(() => {
+  const now = new Date();
+  const unitDays = historyFilterType.value === 'weeks' ? 7 : 1;
+  const rangeDays = Math.max(1, Number(historyFilterValue.value)) * unitDays;
+  const from = new Date(now.getTime() - (rangeDays * 24 * 60 * 60 * 1000));
+
+  return appointments.value
+    .filter((a) => {
+      const date = new Date(a.start_datetime_utc);
+      const isPast = date < now || a.status !== 'CONFIRMED';
+      return isPast && date >= from && date <= now;
+    })
+    .sort((a, b) => new Date(b.start_datetime_utc).getTime() - new Date(a.start_datetime_utc).getTime());
+});
+
+const agendaAppointments = computed(() => {
+  return appointments.value
+    .filter((a) => a.start_datetime_utc?.startsWith(agendaDate.value))
+    .sort((a, b) => new Date(a.start_datetime_utc).getTime() - new Date(b.start_datetime_utc).getTime());
 });
 
 const openAddServiceModal = () => {
@@ -94,6 +239,7 @@ const openEditServiceModal = (srv: any) => {
 
 const handleSaveService = async () => {
   const token = localStorage.getItem('token');
+  if (!token) return;
   try {
     const url = editingServiceId.value 
       ? `http://localhost:3000/services/${editingServiceId.value}` 
@@ -102,7 +248,7 @@ const handleSaveService = async () => {
 
     const res = await fetch(url, {
       method,
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json', ...getAuthHeaders(token) },
       body: JSON.stringify(newService.value)
     });
     if (res.ok) {
@@ -134,6 +280,7 @@ const openEditStaffModal = (st: any) => {
 
 const handleSaveStaff = async () => {
   const token = localStorage.getItem('token');
+  if (!token) return;
   try {
     const isEdit = !!editingStaffId.value;
     const url = isEdit 
@@ -154,7 +301,7 @@ const handleSaveStaff = async () => {
 
     const res = await fetch(url, {
       method,
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json', ...getAuthHeaders(token) },
       body: JSON.stringify(isEdit ? { service_ids: payload.service_ids } : payload)
     });
     if (res.ok) {
@@ -167,21 +314,93 @@ const handleSaveStaff = async () => {
   } catch (err) { console.error(err); }
 };
 
+const openScheduleModal = (st: any) => {
+  scheduleTargetStaffId.value = st.id;
+  scheduleTargetStaffName.value = st.user.name;
+  scheduleSaveMsg.value = '';
+  hydrateScheduleForm(st.schedules || []);
+  showScheduleModal.value = true;
+};
+
+const saveStaffSchedule = async () => {
+  const token = localStorage.getItem('token');
+  if (!token || !scheduleTargetStaffId.value) return;
+
+  const payload: Array<{ day_of_week: number; start_time: string; end_time: string }> = [];
+
+  for (const day of staffScheduleForm.value) {
+    if (!day.active) continue;
+
+    if (toMinutes(day.start_time) >= toMinutes(day.end_time)) {
+      scheduleSaveMsg.value = `Horario invalido en ${day.name} (tramo 1).`;
+      return;
+    }
+
+    payload.push({
+      day_of_week: day.day_of_week,
+      start_time: day.start_time,
+      end_time: day.end_time
+    });
+
+    if (day.split_active) {
+      if (toMinutes(day.split_start_time) >= toMinutes(day.split_end_time)) {
+        scheduleSaveMsg.value = `Horario invalido en ${day.name} (tramo 2).`;
+        return;
+      }
+
+      if (toMinutes(day.end_time) > toMinutes(day.split_start_time)) {
+        scheduleSaveMsg.value = `Los tramos de ${day.name} se solapan.`;
+        return;
+      }
+
+      payload.push({
+        day_of_week: day.day_of_week,
+        start_time: day.split_start_time,
+        end_time: day.split_end_time
+      });
+    }
+  }
+
+  scheduleSaveMsg.value = 'Guardando...';
+
+  try {
+    const res = await fetch(`http://localhost:3000/staff/${scheduleTargetStaffId.value}/schedule`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...getAuthHeaders(token) },
+      body: JSON.stringify({ schedules: payload })
+    });
+
+    if (!res.ok) {
+      scheduleSaveMsg.value = 'No se pudo guardar el horario.';
+      return;
+    }
+
+    scheduleSaveMsg.value = 'Horario actualizado correctamente.';
+    await fetchDashboardData();
+    setTimeout(() => {
+      showScheduleModal.value = false;
+      scheduleSaveMsg.value = '';
+    }, 800);
+  } catch (err) {
+    console.error(err);
+    scheduleSaveMsg.value = 'Error al guardar el horario.';
+  }
+};
+
+const getScheduleSummary = (schedules: any[]) => {
+  const totalRanges = (schedules || []).length;
+  if (!totalRanges) return 'Sin horario configurado';
+  return `${totalRanges} tramo(s) configurado(s)`;
+};
+
 const handleDateOrStaffChange = async () => {
   if (!newBooking.value.serviceId || !newBooking.value.staffId || !newBooking.value.date) {
     availableSlots.value = [];
     return;
   }
   
-  // We need the business slug for the public endpoint API. Since this is the dashboard,
-  // we can fetch the slug from the owner's businesses or we just use a generic 'demo-barbershop' for this MVP example.
-  // Idealy, the dashboard could hit a protected `/appointments/availability` endpoint, 
-  // but we can reuse the public one if we pass slug. Let's assume the user has a business with slug 'pelu' 
-  // or we get it from local state.
-  const slug = 'pelu'; // Hardcoded for MVP, ideally fetched from User Data
-  
   try {
-    const res = await fetch(`http://localhost:3000/public/${slug}/availability?serviceId=${newBooking.value.serviceId}&staffId=${newBooking.value.staffId}&date=${newBooking.value.date}`);
+    const res = await fetch(`http://localhost:3000/public/${businessSlug.value}/availability?serviceId=${newBooking.value.serviceId}&staffId=${newBooking.value.staffId}&date=${newBooking.value.date}`);
     if (res.ok) {
       availableSlots.value = await res.json();
     } else {
@@ -195,9 +414,8 @@ const handleDateOrStaffChange = async () => {
 
 const handleMonthChange = async (year: number, month: number) => {
   if (!newBooking.value.serviceId || !newBooking.value.staffId) return;
-  const slug = 'pelu';
   try {
-    const res = await fetch(`http://localhost:3000/public/${slug}/availability/month?serviceId=${newBooking.value.serviceId}&staffId=${newBooking.value.staffId}&year=${year}&month=${month}`);
+    const res = await fetch(`http://localhost:3000/public/${businessSlug.value}/availability/month?serviceId=${newBooking.value.serviceId}&staffId=${newBooking.value.staffId}&year=${year}&month=${month}`);
     if (res.ok) {
       monthlyAvailability.value = await res.json();
     } else {
@@ -237,7 +455,6 @@ const openBookingModal = () => {
 
 const handleSaveBooking = async () => {
   try {
-    const slug = 'pelu'; // Hardcoded for MVP
     const payload = {
       clientName: newBooking.value.clientName,
       clientEmail: newBooking.value.clientEmail,
@@ -246,7 +463,7 @@ const handleSaveBooking = async () => {
       startDatetimeUtc: newBooking.value.time
     };
 
-    const res = await fetch(`http://localhost:3000/public/${slug}/book`, {
+    const res = await fetch(`http://localhost:3000/public/${businessSlug.value}/book`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -278,6 +495,11 @@ const translateStatus = (status: string) => {
 
 const formatTime = (isoString: string) => new Date(isoString).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 const formatDate = (isoString: string) => new Date(isoString).toLocaleDateString('es-ES', { weekday: 'short', month: 'short', day: 'numeric' });
+const formatLongDate = (isoString: string) => new Date(isoString).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+const formatPrice = (value: number | string) => {
+  const numeric = Number(value);
+  return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(numeric);
+};
 </script>
 
 <template>
@@ -299,6 +521,11 @@ const formatDate = (isoString: string) => new Date(isoString).toLocaleDateString
           @click="activeTab = 'appointments'" 
           :class="['px-6 py-4 text-left border-l-2 transition-all duration-500 uppercase tracking-widest text-xs font-semibold', activeTab === 'appointments' ? 'border-primary text-primary bg-primary/5' : 'border-transparent text-textMuted hover:text-brandDark hover:border-primary/30']">
           Agenda
+        </button>
+        <button 
+          @click="activeTab = 'history'" 
+          :class="['px-6 py-4 text-left border-l-2 transition-all duration-500 uppercase tracking-widest text-xs font-semibold', activeTab === 'history' ? 'border-primary text-primary bg-primary/5' : 'border-transparent text-textMuted hover:text-brandDark hover:border-primary/30']">
+          Historial
         </button>
         <button 
           @click="activeTab = 'services'" 
@@ -328,54 +555,108 @@ const formatDate = (isoString: string) => new Date(isoString).toLocaleDateString
         <p class="text-primary font-light tracking-[0.3em] text-xs uppercase animate-pulse">Sincronizando</p>
       </div>
 
+      <div v-if="isSuperadminView" class="mb-6 p-4 border border-primary/20 bg-primary/5 rounded-lg flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <p class="text-xs uppercase tracking-widest text-textMuted">
+          Modo superadmin activo // negocio {{ businessSlug }}
+        </p>
+        <button type="button" @click="router.push('/superadmin/dashboard')" class="btn-secondary px-4 py-2 text-[10px]">
+          Volver al panel superadmin
+        </button>
+      </div>
+
       <!-- Agenda View -->
       <div v-show="activeTab === 'appointments'" class="animate-fade-in-up delay-100 h-full flex flex-col">
         <header class="flex justify-between items-end border-b border-border pb-6 mb-8">
           <div>
-            <h3 class="font-display text-2xl text-white">Agenda de hoy</h3>
-            <p class="text-textMuted text-xs uppercase tracking-widest mt-2 font-light">Seguimiento de citas en tiempo real</p>
+            <h3 class="font-display text-2xl text-white">Agenda por dia</h3>
+            <p class="text-textMuted text-xs uppercase tracking-widest mt-2 font-light">Selecciona una fecha para ver sus horarios</p>
           </div>
           <button @click="openBookingModal" class="btn-primary px-6 py-2 tracking-widest text-[10px] uppercase">+ Nueva reserva</button>
         </header>
-        
-        <div v-if="appointments.length === 0" class="flex-1 flex flex-col items-center justify-center py-32 border border-border bg-surface rounded-xl">
-          <div class="w-16 h-[1px] bg-primary/30 mb-6"></div>
-          <p class="text-textMuted font-light uppercase tracking-widest text-sm text-center text-balance">La agenda está vacía.<br/>No hay reservas para hoy.</p>
+
+        <div class="grid grid-cols-1 xl:grid-cols-[350px_1fr] gap-6">
+          <section class="bg-surface border border-border rounded-xl p-4">
+            <CalendarPicker
+              :availabilityMap="agendaAvailabilityMap"
+              :selectedDate="agendaDate"
+              @month-change="handleAgendaMonthChange"
+              @select="handleAgendaDateSelect"
+            />
+          </section>
+
+          <section class="bg-surface border border-border rounded-xl p-6">
+            <div class="flex items-center justify-between border-b border-border pb-4 mb-4">
+              <h4 class="font-display text-xl text-white">Citas del {{ formatLongDate(agendaDate) }}</h4>
+              <span class="text-xs uppercase tracking-widest text-textMuted">{{ agendaAppointments.length }} cita(s)</span>
+            </div>
+
+            <div v-if="agendaAppointments.length === 0" class="py-20 text-center">
+              <p class="text-textMuted uppercase tracking-widest text-sm font-light">No hay citas para este dia.</p>
+            </div>
+
+            <div v-else class="space-y-3">
+              <article v-for="app in agendaAppointments" :key="app.id" class="p-4 border border-border rounded-lg bg-surfaceHover/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex items-start gap-4">
+                  <div class="shrink-0 min-w-[78px] text-center border border-primary/20 bg-primary/5 rounded-md py-2 px-2">
+                    <p class="text-sm font-semibold text-primary">{{ formatTime(app.start_datetime_utc) }}</p>
+                    <p class="text-[10px] uppercase tracking-widest text-textMuted">{{ formatTime(app.end_datetime_utc) }}</p>
+                  </div>
+                  <div>
+                    <h5 class="font-semibold text-text">{{ app.service.name }}</h5>
+                    <p class="text-xs text-textMuted uppercase tracking-widest mt-1">Profesional: {{ app.staff.user.name }}</p>
+                    <p class="text-xs text-textMuted mt-2">Cliente: {{ app.client?.user?.name || 'Sin nombre' }}</p>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                  <span :class="['text-xs uppercase tracking-[0.2em] font-medium border-b pb-1', app.status === 'CONFIRMED' ? 'text-primary border-primary/30' : app.status === 'COMPLETED' ? 'text-neutral-500 border-neutral-700' : 'text-red-500/70 border-red-900/50']">
+                    {{ translateStatus(app.status) }}
+                  </span>
+                  <button v-if="app.status === 'CONFIRMED'" @click="updateAppointmentStatus(app.id, 'COMPLETED')" class="w-9 h-9 border border-border hover:border-primary text-textMuted hover:text-primary flex items-center justify-center transition-all bg-surface rounded-md" title="Marcar como completada">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M5 13l4 4L19 7" /></svg>
+                  </button>
+                  <button v-if="app.status === 'CONFIRMED'" @click="updateAppointmentStatus(app.id, 'CANCELLED')" class="w-9 h-9 border border-border hover:border-red-400 text-textMuted hover:text-red-600 flex items-center justify-center transition-all bg-surface rounded-md" title="Cancelar">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                </div>
+              </article>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <!-- History View -->
+      <div v-show="activeTab === 'history'" class="animate-fade-in-up delay-100 h-full flex flex-col">
+        <header class="flex flex-col sm:flex-row sm:items-end sm:justify-between border-b border-border pb-6 mb-8 gap-4">
+          <div>
+            <h3 class="font-display text-2xl text-white">Historial de citas</h3>
+            <p class="text-textMuted text-xs uppercase tracking-widest mt-2 font-light">Filtrar por dias o semanas</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <select v-model="historyFilterType" class="input-premium py-2 px-3 text-xs w-auto">
+              <option value="days">Ultimos dias</option>
+              <option value="weeks">Ultimas semanas</option>
+            </select>
+            <input v-model.number="historyFilterValue" type="number" min="1" class="input-premium py-2 px-3 text-xs w-24" />
+          </div>
+        </header>
+
+        <div v-if="historyAppointments.length === 0" class="flex-1 flex flex-col items-center justify-center py-32 border border-border bg-surface rounded-xl">
+          <p class="text-textMuted font-light text-sm">No hay citas para el rango seleccionado.</p>
         </div>
 
         <div v-else class="space-y-4">
-          <div v-for="app in appointments" :key="app.id" class="p-6 bg-surface border border-border hover:border-primary/30 hover:bg-surfaceHover transition-all duration-500 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden group rounded-xl">
-            <div class="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            
-            <div class="flex gap-6 items-center">
-              <div class="text-center shrink-0 w-24">
-                <span class="block text-primary font-display font-medium text-xl">{{ formatTime(app.start_datetime_utc) }}</span>
-                <span class="block text-xs text-textMuted uppercase tracking-widest mt-1">{{ formatDate(app.start_datetime_utc) }}</span>
-              </div>
-              
-              <div class="w-px h-12 bg-border hidden md:block"></div>
-
-              <div>
-                <h4 class="font-display text-lg text-white mb-1">{{ app.service.name }}</h4>
-                <p class="text-xs text-textMuted uppercase tracking-widest font-light">Profesional: {{ app.staff.user.name }}</p>
-              </div>
+          <div v-for="app in historyAppointments" :key="app.id" class="p-6 bg-surface border border-border rounded-xl flex flex-col sm:flex-row justify-between gap-4">
+            <div>
+              <p class="text-[10px] text-textMuted uppercase tracking-[0.2em] mb-1">{{ app.business?.name }}</p>
+              <h4 class="font-display text-lg text-text mb-1">{{ app.service.name }}</h4>
+              <p class="text-xs text-textMuted">{{ formatDate(app.start_datetime_utc) }} - {{ formatTime(app.start_datetime_utc) }}</p>
+              <p class="text-xs text-textMuted mt-2">Profesional: {{ app.staff.user.name }}</p>
             </div>
-            
-            <div class="flex items-center gap-6">
-              <span :class="['text-xs uppercase tracking-[0.2em] font-medium border-b pb-1', 
-                app.status === 'CONFIRMED' ? 'text-primary border-primary/30' : 
-                app.status === 'COMPLETED' ? 'text-neutral-500 border-neutral-700' : 'text-red-500/70 border-red-900/50']">
+            <div class="flex items-start">
+              <span class="text-[10px] px-3 py-1 uppercase tracking-widest border bg-surfaceHover text-textMuted border-border">
                 {{ translateStatus(app.status) }}
               </span>
-              
-              <div v-if="app.status === 'CONFIRMED'" class="flex gap-3">
-                <button @click="updateAppointmentStatus(app.id, 'COMPLETED')" class="w-10 h-10 border border-border hover:border-primary text-textMuted hover:text-primary flex items-center justify-center transition-all bg-surface tooltip rounded-md" title="Marcar como completada">
-                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M5 13l4 4L19 7" /></svg>
-                </button>
-                <button @click="updateAppointmentStatus(app.id, 'CANCELLED')" class="w-10 h-10 border border-border hover:border-red-400 text-textMuted hover:text-red-600 flex items-center justify-center transition-all bg-surface tooltip rounded-md" title="Cancelar">
-                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M6 18L18 6M6 6l12 12" /></svg>
-                </button>
-              </div>
             </div>
           </div>
         </div>
@@ -403,7 +684,7 @@ const formatDate = (isoString: string) => new Date(isoString).toLocaleDateString
             <h4 class="font-display text-xl text-white mb-4">{{ srv.name }}</h4>
             <div class="flex items-center gap-6">
               <span class="text-xs uppercase tracking-widest text-textMuted font-light">{{ srv.duration_min }} MIN</span>
-              <span class="text-lg font-light text-primary">${{ srv.price }}</span>
+              <span class="text-lg font-light text-primary">{{ formatPrice(srv.price) }}</span>
             </div>
           </div>
         </div>
@@ -427,16 +708,23 @@ const formatDate = (isoString: string) => new Date(isoString).toLocaleDateString
         </div>
 
         <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div v-for="st in staff" :key="st.id" @click="openEditStaffModal(st)" class="cursor-pointer p-6 bg-surface border border-border flex items-center gap-6 group hover:border-primary/30 transition-colors rounded-xl">
-            <div class="w-14 h-14 bg-gradient-to-tr from-surfaceHover to-border border border-border flex items-center justify-center font-display text-xl text-brandDark rounded-lg">
-              {{ st.user.name.charAt(0) }}
-            </div>
-            <div>
-              <h4 class="font-display text-lg text-white mb-1">{{ st.user.name }}</h4>
-              <p class="text-xs text-textMuted uppercase tracking-widest mb-2 font-light">{{ st.user.email }}</p>
+          <div v-for="st in staff" :key="st.id" class="p-6 bg-surface border border-border group hover:border-primary/30 transition-colors rounded-xl">
+            <div class="flex items-center gap-6">
+              <div class="w-14 h-14 bg-gradient-to-tr from-surfaceHover to-border border border-border flex items-center justify-center font-display text-xl text-brandDark rounded-lg">
+                {{ st.user.name.charAt(0) }}
+              </div>
+              <div>
+                <h4 class="font-display text-lg text-white mb-1">{{ st.user.name }}</h4>
+                <p class="text-xs text-textMuted uppercase tracking-widest mb-2 font-light">{{ st.user.email }}</p>
                 <span :class="['text-[10px] px-2 py-1 uppercase tracking-widest rounded', st.is_active ? 'bg-primary/10 text-primary border border-primary/20' : 'bg-surfaceHover text-textMuted border border-border']">
                   {{ st.is_active ? 'Activo' : 'Inactivo' }}
-              </span>
+                </span>
+              </div>
+            </div>
+            <p class="text-xs text-textMuted mt-4">{{ getScheduleSummary(st.schedules) }}</p>
+            <div class="mt-4 flex gap-3">
+              <button type="button" @click="openEditStaffModal(st)" class="btn-secondary px-4 py-2 tracking-widest text-[10px]">Editar</button>
+              <button type="button" @click="openScheduleModal(st)" class="btn-primary px-4 py-2 tracking-widest text-[10px]">Horario</button>
             </div>
           </div>
         </div>
@@ -453,7 +741,7 @@ const formatDate = (isoString: string) => new Date(isoString).toLocaleDateString
             <input v-model="newService.description" type="text" placeholder="DESCRIPCIÓN (OPCIONAL)" class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
             <div class="grid grid-cols-2 gap-4">
               <input v-model.number="newService.duration_min" type="number" placeholder="DURACIÓN (MIN)" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
-              <input v-model.number="newService.price" type="number" placeholder="PRECIO ($)" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
+              <input v-model.number="newService.price" type="number" placeholder="PRECIO (EUR)" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
             </div>
 
             <!-- Assigned Staff Checkboxes -->
@@ -513,6 +801,60 @@ const formatDate = (isoString: string) => new Date(isoString).toLocaleDateString
               <button type="submit" class="btn-primary px-8 py-3 tracking-widest text-[10px]">{{ editingStaffId ? 'Guardar cambios' : 'Registrar profesional' }}</button>
             </div>
           </form>
+        </div>
+      </div>
+
+      <!-- Staff Schedule Modal -->
+      <div v-if="showScheduleModal" class="fixed inset-0 z-50 flex items-start justify-center px-4 pt-16 pb-8 sm:px-6 sm:pt-20 sm:pb-10 md:px-8 md:pt-24 md:pb-12 overflow-y-auto">
+        <div class="absolute inset-0 bg-background/80 backdrop-blur-sm" @click="showScheduleModal = false"></div>
+        <div class="w-full max-w-4xl my-2 sm:my-3 max-h-[calc(100dvh-5rem)] sm:max-h-[calc(100dvh-7rem)] overflow-y-auto custom-scrollbar bg-surface border border-border px-6 py-8 sm:px-10 sm:py-10 relative z-10 shadow-xl animate-fade-in-up rounded-xl">
+          <h2 class="font-display text-3xl text-white mb-2">Horario de {{ scheduleTargetStaffName }}</h2>
+          <p class="text-textMuted uppercase tracking-widest text-xs font-light mb-6 border-b border-border pb-4">Turno continuo o partido</p>
+
+          <div class="space-y-4">
+            <div v-for="day in staffScheduleForm" :key="day.day_of_week" class="p-4 rounded-lg bg-surface border border-border">
+              <div class="flex flex-wrap items-center justify-between gap-4 mb-3">
+                <div class="flex items-center gap-3">
+                  <input type="checkbox" v-model="day.active" class="w-4 h-4 rounded border-border bg-transparent text-primary focus:ring-primary transition-colors" />
+                  <span class="text-sm font-medium" :class="day.active ? 'text-text' : 'text-textMuted'">{{ day.name }}</span>
+                </div>
+                <label class="flex items-center gap-2 text-xs text-textMuted" :class="{ 'opacity-50 pointer-events-none': !day.active }">
+                  <input type="checkbox" v-model="day.split_active" class="w-4 h-4 rounded border-border bg-transparent text-primary focus:ring-primary" />
+                  Turno partido
+                </label>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4" :class="{ 'opacity-50 pointer-events-none': !day.active }">
+                <div class="p-3 border border-border rounded-md bg-surfaceHover/40">
+                  <p class="text-[11px] uppercase tracking-widest text-textMuted mb-2">Tramo 1</p>
+                  <div class="flex items-center gap-2">
+                    <input type="time" v-model="day.start_time" class="input-premium py-2 px-3 text-xs" />
+                    <span class="text-textMuted text-xs">a</span>
+                    <input type="time" v-model="day.end_time" class="input-premium py-2 px-3 text-xs" />
+                  </div>
+                </div>
+
+                <div class="p-3 border border-border rounded-md bg-surfaceHover/40" :class="{ 'opacity-50 pointer-events-none': !day.split_active }">
+                  <p class="text-[11px] uppercase tracking-widest text-textMuted mb-2">Tramo 2</p>
+                  <div class="flex items-center gap-2">
+                    <input type="time" v-model="day.split_start_time" class="input-premium py-2 px-3 text-xs" />
+                    <span class="text-textMuted text-xs">a</span>
+                    <input type="time" v-model="day.split_end_time" class="input-premium py-2 px-3 text-xs" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-border flex items-center justify-between gap-4">
+            <p class="text-xs" :class="scheduleSaveMsg.includes('invalido') || scheduleSaveMsg.includes('solapan') || scheduleSaveMsg.includes('No se pudo') || scheduleSaveMsg.includes('Error') ? 'text-red-700' : 'text-primary'">
+              {{ scheduleSaveMsg }}
+            </p>
+            <div class="flex gap-3">
+              <button type="button" @click="showScheduleModal = false" class="btn-secondary px-8 py-3 tracking-widest text-[10px]">Cancelar</button>
+              <button type="button" @click="saveStaffSchedule" class="btn-primary px-8 py-3 tracking-widest text-[10px]">Guardar horario</button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -586,3 +928,4 @@ const formatDate = (isoString: string) => new Date(isoString).toLocaleDateString
 
   </div>
 </template>
+

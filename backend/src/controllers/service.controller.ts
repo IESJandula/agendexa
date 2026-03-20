@@ -2,9 +2,23 @@ import { Request, Response } from 'express';
 import { prisma } from '../index';
 import { AuthRequest } from '../middlewares/auth.middleware';
 
+const resolveBusinessId = (req: AuthRequest): string | null => {
+    if (!req.user) return null;
+
+    if (req.user.role === 'SUPERADMIN') {
+        const businessHeader = req.headers['x-business-id'];
+        if (typeof businessHeader === 'string' && businessHeader.trim()) {
+            return businessHeader.trim();
+        }
+        return null;
+    }
+
+    return req.user.business_id ?? null;
+};
+
 export const getServices = async (req: AuthRequest, res: Response) => {
     try {
-        const business_id = req.user?.business_id;
+        const business_id = resolveBusinessId(req);
         if (!business_id) return res.status(403).json({ error: 'No business associated' });
 
         const services = await prisma.service.findMany({
@@ -21,7 +35,7 @@ export const getServices = async (req: AuthRequest, res: Response) => {
 
 export const createService = async (req: AuthRequest, res: Response) => {
     try {
-        const business_id = req.user?.business_id;
+        const business_id = resolveBusinessId(req);
         if (!business_id) return res.status(403).json({ error: 'No business associated' });
 
         const { name, duration_min, price, is_active, staff_ids } = req.body;
@@ -59,7 +73,7 @@ export const createService = async (req: AuthRequest, res: Response) => {
 
 export const updateService = async (req: AuthRequest, res: Response) => {
     try {
-        const business_id = req.user?.business_id;
+        const business_id = resolveBusinessId(req);
         const { id } = req.params;
         const { name, duration_min, price, is_active, staff_ids } = req.body;
 
@@ -99,7 +113,7 @@ export const updateService = async (req: AuthRequest, res: Response) => {
 
 export const deleteService = async (req: AuthRequest, res: Response) => {
     try {
-        const business_id = req.user?.business_id;
+        const business_id = resolveBusinessId(req);
         const { id } = req.params;
 
         const service = await prisma.service.findUnique({ where: { id } });

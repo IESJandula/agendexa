@@ -141,6 +141,10 @@ const submitBooking = async () => {
 
 const formatTime = (isoString: string) => new Date(isoString).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString('es-ES', { weekday: 'long', month: 'long', day: 'numeric' });
+const formatPrice = (value: number | string) => {
+  const numeric = Number(value);
+  return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(numeric);
+};
 
 const selectedServiceName = computed(() => services.value.find(s => s.id === booking.value.serviceId)?.name || '');
 const selectedStaffName = computed(() => staff.value.find(s => s.id === booking.value.staffId)?.user.name || '');
@@ -184,7 +188,7 @@ const selectedStaffName = computed(() => staff.value.find(s => s.id === booking.
               <h3 class="font-display text-lg mb-1 tracking-wide">{{ s.name }}</h3>
               <p class="text-xs text-textMuted uppercase tracking-widest font-light">{{ s.duration_min }} MIN</p>
             </div>
-            <div class="relative z-10 text-primary font-light text-lg tracking-wider">${{ s.price }}</div>
+            <div class="relative z-10 text-primary font-light text-lg tracking-wider">{{ formatPrice(s.price) }}</div>
           </button>
         </div>
 

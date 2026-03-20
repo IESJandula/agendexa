@@ -6,14 +6,14 @@ const router = Router();
 
 router.use(authenticateToken);
 
-// Owner only endpoints
-router.get('/', requireRole(['OWNER']), getStaff);
-router.post('/', requireRole(['OWNER']), createStaff);
-router.patch('/:id', requireRole(['OWNER']), updateStaff);
+// Owner and Superadmin endpoints
+router.get('/', requireRole(['OWNER', 'SUPERADMIN']), getStaff);
+router.post('/', requireRole(['OWNER', 'SUPERADMIN']), createStaff);
+router.patch('/:id', requireRole(['OWNER', 'SUPERADMIN']), updateStaff);
 
-// Owner and Staff endpoints
-router.get('/me', requireRole(['OWNER', 'STAFF']), getMe);
-router.patch('/:id/schedule', requireRole(['OWNER', 'STAFF']), updateSchedule);
-router.post('/:id/time-offs', requireRole(['OWNER', 'STAFF']), addTimeOff);
+// Owner, Staff and Superadmin endpoints
+router.get('/me', requireRole(['OWNER', 'STAFF', 'SUPERADMIN']), getMe);
+router.patch('/:id/schedule', requireRole(['OWNER', 'STAFF', 'SUPERADMIN']), updateSchedule);
+router.post('/:id/time-offs', requireRole(['OWNER', 'STAFF', 'SUPERADMIN']), addTimeOff);
 
 export default router;

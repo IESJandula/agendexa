@@ -2,9 +2,23 @@ import { Request, Response } from 'express';
 import { prisma } from '../index';
 import { AuthRequest } from '../middlewares/auth.middleware';
 
+const resolveBusinessId = (req: AuthRequest): string | null => {
+    if (!req.user) return null;
+
+    if (req.user.role === 'SUPERADMIN') {
+        const businessHeader = req.headers['x-business-id'];
+        if (typeof businessHeader === 'string' && businessHeader.trim()) {
+            return businessHeader.trim();
+        }
+        return null;
+    }
+
+    return req.user.business_id ?? null;
+};
+
 export const getAppointments = async (req: AuthRequest, res: Response) => {
     try {
-        const business_id = req.user?.business_id;
+        const business_id = resolveBusinessId(req);
         const role = req.user?.role;
         const userId = req.user?.id;
         const { from, to, staffId } = req.query;
@@ -41,7 +55,8 @@ export const getAppointments = async (req: AuthRequest, res: Response) => {
             include: {
                 staff: { include: { user: { select: { name: true } } } },
                 service: { select: { name: true, duration_min: true, price: true } },
-                business: { select: { name: true, slug: true } }
+                business: { select: { name: true, slug: true } },
+                client: { include: { user: { select: { name: true, email: true } } } }
             },
             orderBy: { start_datetime_utc: 'asc' }
         });
@@ -55,7 +70,7 @@ export const getAppointments = async (req: AuthRequest, res: Response) => {
 
 export const updateAppointmentStatus = async (req: AuthRequest, res: Response) => {
     try {
-        const business_id = req.user?.business_id;
+        const business_id = resolveBusinessId(req);
         const role = req.user?.role;
         const userId = req.user?.id;
         const { id } = req.params;

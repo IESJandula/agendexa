@@ -75,6 +75,17 @@ const logout = () => {
   localStorage.removeItem('token');
   router.push('/');
 };
+
+const openOwnerView = (business: any) => {
+  router.push({
+    path: '/owner/dashboard',
+    query: {
+      businessId: business.id,
+      businessSlug: business.slug,
+      from: 'superadmin'
+    }
+  });
+};
 </script>
 
 <template>
@@ -127,6 +138,12 @@ const logout = () => {
               <span class="text-textMuted uppercase tracking-widest text-[10px]">Intervalo de agenda</span>
               <span class="text-white">{{ b.settings?.slot_interval_minutes || 30 }}M</span>
             </div>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-border">
+            <button @click="openOwnerView(b)" class="btn-primary w-full py-3 text-[10px] tracking-widest">
+              Abrir panel propietario
+            </button>
           </div>
         </div>
       </div>

@@ -4,9 +4,9 @@ import { authenticateToken, requireRole } from '../middlewares/auth.middleware';
 
 const router = Router();
 
-// Only OWNER can manage services
+// OWNER and SUPERADMIN can manage services
 router.use(authenticateToken);
-router.use(requireRole(['OWNER']));
+router.use(requireRole(['OWNER', 'SUPERADMIN']));
 
 router.get('/', getServices);
 router.post('/', createService);

@@ -3,9 +3,23 @@ import { prisma } from '../index';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import bcrypt from 'bcryptjs';
 
+const resolveBusinessId = (req: AuthRequest): string | null => {
+    if (!req.user) return null;
+
+    if (req.user.role === 'SUPERADMIN') {
+        const businessHeader = req.headers['x-business-id'];
+        if (typeof businessHeader === 'string' && businessHeader.trim()) {
+            return businessHeader.trim();
+        }
+        return null;
+    }
+
+    return req.user.business_id ?? null;
+};
+
 export const getStaff = async (req: AuthRequest, res: Response) => {
     try {
-        const business_id = req.user?.business_id;
+        const business_id = resolveBusinessId(req);
         if (!business_id) return res.status(403).json({ error: 'No business associated' });
 
         const staffProfiles = await prisma.staffProfile.findMany({
@@ -51,7 +65,7 @@ export const getMe = async (req: AuthRequest, res: Response) => {
 
 export const createStaff = async (req: AuthRequest, res: Response) => {
     try {
-        const business_id = req.user?.business_id;
+        const business_id = resolveBusinessId(req);
         if (!business_id) return res.status(403).json({ error: 'No business associated' });
 
         const { name, email, password, is_active, service_ids } = req.body;
@@ -105,7 +119,7 @@ export const createStaff = async (req: AuthRequest, res: Response) => {
 
 export const updateStaff = async (req: AuthRequest, res: Response) => {
     try {
-        const business_id = req.user?.business_id;
+        const business_id = resolveBusinessId(req);
         const { id } = req.params; // StaffProfile ID
         const { is_active, service_ids } = req.body;
 
@@ -142,7 +156,7 @@ export const updateStaff = async (req: AuthRequest, res: Response) => {
 
 export const updateSchedule = async (req: AuthRequest, res: Response) => {
     try {
-        const business_id = req.user?.business_id;
+        const business_id = resolveBusinessId(req);
         const { id } = req.params; // StaffProfile ID
         const { schedules } = req.body; // Array of { day_of_week, start_time, end_time }
 
@@ -177,7 +191,7 @@ export const updateSchedule = async (req: AuthRequest, res: Response) => {
 
 export const addTimeOff = async (req: AuthRequest, res: Response) => {
     try {
-        const business_id = req.user?.business_id;
+        const business_id = resolveBusinessId(req);
         const { id } = req.params;
         const { start_datetime_utc, end_datetime_utc, reason } = req.body;
 
