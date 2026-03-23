@@ -1,9 +1,28 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
 const searchQuery = ref('');
-const searchResults = ref<any[]>([]);
+const searchBy = ref<'name' | 'location'>('name');
+type SearchBusiness = {
+  id: string;
+  name: string;
+  slug: string;
+  location?: string | null;
+};
+const searchResults = ref<SearchBusiness[]>([]);
 const isSearching = ref(false);
+
+const searchPlaceholder = computed(() =>
+  searchBy.value === 'location'
+    ? 'Ej: Madrid, Valencia, Sevilla...'
+    : 'Ej: Peluqueria Luis, Unas de Cristal...'
+);
+
+const noResultsMessage = computed(() =>
+  searchBy.value === 'location'
+    ? 'No se encontraron negocios en esa ubicacion.'
+    : 'No se encontraron negocios con ese nombre.'
+);
 
 let searchTimeout: any = null;
 
@@ -18,7 +37,7 @@ const handleSearch = () => {
   isSearching.value = true;
   searchTimeout = setTimeout(async () => {
     try {
-      const res = await fetch(`http://localhost:3000/public/businesses/search?q=${encodeURIComponent(searchQuery.value)}`);
+      const res = await fetch(`http://localhost:3000/public/businesses/search?q=${encodeURIComponent(searchQuery.value)}&by=${searchBy.value}`);
       if (res.ok) {
         searchResults.value = await res.json();
       }
@@ -73,13 +92,36 @@ const handleSearch = () => {
       <!-- Search Engine Box -->
       <div class="mt-14 sm:mt-20 mb-8 sm:mb-12 w-full max-w-2xl px-1 sm:px-4 animate-fade-in-up delay-400 relative">
         <label class="block text-brandDark uppercase tracking-widest text-[10px] mb-4 font-semibold text-center">Encuentra tu centro</label>
+
+        <div class="flex items-center justify-center gap-2 mb-3">
+          <button
+            type="button"
+            @click="searchBy = 'name'; handleSearch()"
+            :class="searchBy === 'name'
+              ? 'bg-brandDark text-surface border-brandDark'
+              : 'bg-surface text-brandDark border-border hover:border-brandDark/40'"
+            class="px-3 py-1.5 rounded-full border text-xs tracking-wide transition-colors"
+          >
+            Nombre
+          </button>
+          <button
+            type="button"
+            @click="searchBy = 'location'; handleSearch()"
+            :class="searchBy === 'location'
+              ? 'bg-brandDark text-surface border-brandDark'
+              : 'bg-surface text-brandDark border-border hover:border-brandDark/40'"
+            class="px-3 py-1.5 rounded-full border text-xs tracking-wide transition-colors"
+          >
+            Ubicacion
+          </button>
+        </div>
         
         <div class="relative">
           <input 
             v-model="searchQuery"
             @input="handleSearch"
             type="search" 
-            placeholder="Ej: Peluquería Luis, Uñas de Cristal..." 
+            :placeholder="searchPlaceholder"
             class="w-full bg-surface border border-border text-text px-6 py-5 rounded-lg outline-none focus:border-primary/60 focus:bg-surface transition-all font-light tracking-wide text-lg"
           >
           <div v-if="isSearching" class="absolute right-6 top-1/2 -translate-y-1/2 w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
@@ -88,7 +130,7 @@ const handleSearch = () => {
         <!-- Search Results Dropdown -->
         <div v-if="searchQuery && (searchResults.length > 0 || !isSearching)" class="mt-2 bg-surface border border-border z-50 shadow-xl rounded-lg overflow-hidden max-h-[52vh] overflow-y-auto">
           <div v-if="searchResults.length === 0 && !isSearching" class="p-6 text-center text-textMuted font-light text-sm italic">
-            No se encontraron negocios con ese nombre.
+            {{ noResultsMessage }}
           </div>
           
           <router-link 
@@ -99,6 +141,7 @@ const handleSearch = () => {
           >
             <div>
               <h4 class="font-display text-xl text-text group-hover:text-brandDark transition-colors">{{ biz.name }}</h4>
+              <p v-if="biz.location" class="text-xs text-brandDark/70 mt-1">{{ biz.location }}</p>
               <p class="text-xs text-textMuted uppercase tracking-widest mt-1">/{{ biz.slug }}</p>
             </div>
             <svg class="w-5 h-5 text-textMuted group-hover:text-brandDark transform group-hover:translate-x-1 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M9 5l7 7-7 7" /></svg>

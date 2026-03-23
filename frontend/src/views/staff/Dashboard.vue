@@ -288,7 +288,7 @@ const formatDate = (dateStr: string) => {
 
             <div class="space-y-3">
               <p class="text-sm font-medium text-text">{{ appt.client?.user?.name || 'Cliente' }}</p>
-              <p class="text-xs text-textMuted">{{ appt.client?.user?.email || '-' }}</p>
+              <p class="text-xs text-textMuted break-all" :title="appt.client?.user?.email || '-'">{{ appt.client?.user?.email || '-' }}</p>
               <p class="text-sm text-text">{{ appt.service?.name }}</p>
               <p class="text-xs text-textMuted">{{ appt.service?.duration_min }} min</p>
             </div>

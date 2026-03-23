@@ -23,6 +23,7 @@ model Business {
   id                    String          @id @default(uuid())
   name                  String
   slug                  String          @unique
+  location              String?
   phone                 String?
   timezone              String          @default("UTC")
   slot_interval_minutes Int             @default(30)

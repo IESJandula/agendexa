@@ -713,9 +713,9 @@ const formatPrice = (value: number | string) => {
               <div class="w-14 h-14 bg-gradient-to-tr from-surfaceHover to-border border border-border flex items-center justify-center font-display text-xl text-brandDark rounded-lg">
                 {{ st.user.name.charAt(0) }}
               </div>
-              <div>
+              <div class="min-w-0 flex-1">
                 <h4 class="font-display text-lg text-white mb-1">{{ st.user.name }}</h4>
-                <p class="text-xs text-textMuted uppercase tracking-widest mb-2 font-light">{{ st.user.email }}</p>
+                <p class="text-xs text-textMuted uppercase tracking-widest mb-2 font-light truncate" :title="st.user.email">{{ st.user.email }}</p>
                 <span :class="['text-[10px] px-2 py-1 uppercase tracking-widest rounded', st.is_active ? 'bg-primary/10 text-primary border border-primary/20' : 'bg-surfaceHover text-textMuted border border-border']">
                   {{ st.is_active ? 'Activo' : 'Inactivo' }}
                 </span>
@@ -733,35 +733,37 @@ const formatPrice = (value: number | string) => {
       <!-- Create/Edit Service Modal -->
       <div v-if="showServiceModal" class="fixed inset-0 z-50 flex items-start justify-center px-4 pt-16 pb-8 sm:px-6 sm:pt-20 sm:pb-10 md:px-8 md:pt-24 md:pb-12 overflow-y-auto">
         <div class="absolute inset-0 bg-background/80 backdrop-blur-sm" @click="showServiceModal = false"></div>
-        <div class="w-full max-w-lg my-2 sm:my-3 max-h-[calc(100dvh-5rem)] sm:max-h-[calc(100dvh-7rem)] overflow-y-auto custom-scrollbar bg-surface border border-border px-6 py-8 sm:px-10 sm:py-10 relative z-10 shadow-xl animate-fade-in-up rounded-xl">
+        <div class="w-full max-w-lg my-2 sm:my-3 max-h-[calc(100dvh-5rem)] sm:max-h-[calc(100dvh-7rem)] custom-scrollbar bg-surface border border-border px-6 py-8 sm:px-10 sm:py-10 relative z-10 shadow-xl animate-fade-in-up rounded-xl flex flex-col">
           <h2 class="font-display text-3xl text-white mb-2">{{ editingServiceId ? 'Editar servicio' : 'Nuevo servicio' }}</h2>
           <p class="text-textMuted uppercase tracking-widest text-xs font-light mb-8 border-b border-border pb-6">Amplía tu catálogo de servicios</p>
-          <form @submit.prevent="handleSaveService" class="space-y-6 pb-2">
-            <input v-model="newService.name" type="text" placeholder="NOMBRE DEL SERVICIO" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
-            <input v-model="newService.description" type="text" placeholder="DESCRIPCIÓN (OPCIONAL)" class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
-            <div class="grid grid-cols-2 gap-4">
-              <input v-model.number="newService.duration_min" type="number" placeholder="DURACIÓN (MIN)" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
-              <input v-model.number="newService.price" type="number" placeholder="PRECIO (EUR)" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
+          <form @submit.prevent="handleSaveService" class="flex flex-col min-h-0 flex-1">
+            <div class="space-y-6 overflow-y-auto pr-1 pb-4">
+              <input v-model="newService.name" type="text" placeholder="NOMBRE DEL SERVICIO" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
+              <input v-model="newService.description" type="text" placeholder="DESCRIPCIÓN (OPCIONAL)" class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
+              <div class="grid grid-cols-2 gap-4">
+                <input v-model.number="newService.duration_min" type="number" placeholder="DURACIÓN (MIN)" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
+                <input v-model.number="newService.price" type="number" placeholder="PRECIO (EUR)" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
+              </div>
+
+              <!-- Assigned Staff Checkboxes -->
+              <div class="pt-4 border-t border-border">
+                <label class="block text-primary uppercase tracking-widest text-[10px] mb-4 font-semibold">Profesionales asignados</label>
+                <div v-if="staff.length === 0" class="text-textMuted text-xs font-light">
+                  Todavía no hay profesionales disponibles.
+                </div>
+                <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-48 overflow-y-auto custom-scrollbar pr-2">
+                  <label v-for="st in staff" :key="st.id" class="flex items-center gap-3 p-3 bg-surface border border-border hover:border-primary/30 cursor-pointer transition-colors group rounded-md">
+                    <input type="checkbox" v-model="newService.staff_ids" :value="st.id" class="accent-primary w-4 h-4" />
+                    <div class="flex flex-col min-w-0 flex-1">
+                      <span class="text-xs text-text group-hover:text-primary transition-colors">{{ st.user.name }}</span>
+                      <span class="text-[10px] text-textMuted uppercase tracking-widest truncate" :title="st.user.email">{{ st.user.email }}</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
             </div>
 
-            <!-- Assigned Staff Checkboxes -->
-            <div class="pt-4 border-t border-border">
-              <label class="block text-primary uppercase tracking-widest text-[10px] mb-4 font-semibold">Profesionales asignados</label>
-              <div v-if="staff.length === 0" class="text-textMuted text-xs font-light">
-                Todavía no hay profesionales disponibles.
-              </div>
-              <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-48 overflow-y-auto custom-scrollbar pr-2">
-                <label v-for="st in staff" :key="st.id" class="flex items-center gap-3 p-3 bg-surface border border-border hover:border-primary/30 cursor-pointer transition-colors group rounded-md">
-                  <input type="checkbox" v-model="newService.staff_ids" :value="st.id" class="accent-primary w-4 h-4" />
-                  <div class="flex flex-col">
-                    <span class="text-xs text-text group-hover:text-primary transition-colors">{{ st.user.name }}</span>
-                    <span class="text-[10px] text-textMuted uppercase tracking-widest">{{ st.user.email }}</span>
-                  </div>
-                </label>
-              </div>
-            </div>
-
-            <div class="sticky bottom-0 bg-surface/95 backdrop-blur-sm flex justify-end gap-4 mt-10 pt-6 pb-2 border-t border-border">
+            <div class="shrink-0 flex flex-wrap justify-end gap-3 mt-6 pt-6 border-t border-border bg-surface">
               <button type="button" @click="showServiceModal = false" class="btn-secondary px-8 py-3 tracking-widest text-[10px]">Cancelar</button>
               <button type="submit" class="btn-primary px-8 py-3 tracking-widest text-[10px]">{{ editingServiceId ? 'Guardar cambios' : 'Crear servicio' }}</button>
             </div>
@@ -772,31 +774,33 @@ const formatPrice = (value: number | string) => {
       <!-- Create/Edit Staff Modal -->
       <div v-if="showStaffModal" class="fixed inset-0 z-50 flex items-start justify-center px-4 pt-16 pb-8 sm:px-6 sm:pt-20 sm:pb-10 md:px-8 md:pt-24 md:pb-12 overflow-y-auto">
         <div class="absolute inset-0 bg-background/80 backdrop-blur-sm" @click="showStaffModal = false"></div>
-        <div class="w-full max-w-lg my-2 sm:my-3 max-h-[calc(100dvh-5rem)] sm:max-h-[calc(100dvh-7rem)] overflow-y-auto custom-scrollbar bg-surface border border-border px-6 py-8 sm:px-10 sm:py-10 relative z-10 shadow-xl animate-fade-in-up rounded-xl">
+        <div class="w-full max-w-lg my-2 sm:my-3 max-h-[calc(100dvh-5rem)] sm:max-h-[calc(100dvh-7rem)] custom-scrollbar bg-surface border border-border px-6 py-8 sm:px-10 sm:py-10 relative z-10 shadow-xl animate-fade-in-up rounded-xl flex flex-col">
           <h2 class="font-display text-3xl text-white mb-2">{{ editingStaffId ? 'Editar profesional' : 'Nuevo profesional' }}</h2>
           <p class="text-textMuted uppercase tracking-widest text-xs font-light mb-8 border-b border-border pb-6">Gestiona tu equipo</p>
-          <form @submit.prevent="handleSaveStaff" class="space-y-6 pb-2">
-            <input v-if="!editingStaffId" v-model="newStaff.name" type="text" placeholder="NOMBRE COMPLETO" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
-            <input v-if="!editingStaffId" v-model="newStaff.email" type="email" placeholder="CORREO DE ACCESO" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
-            <input v-if="!editingStaffId" v-model="newStaff.password" type="password" placeholder="CONTRASEÑA INICIAL" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
-            
-            <div class="pt-4 border-t border-border">
-              <label class="block text-primary uppercase tracking-widest text-[10px] mb-4 font-semibold">Servicios asignados</label>
-              <div v-if="services.length === 0" class="text-textMuted text-xs font-light">
-                No hay servicios disponibles todavía. Crea primero un servicio en el catálogo.
-              </div>
-              <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-48 overflow-y-auto custom-scrollbar pr-2">
-                <label v-for="srv in services" :key="srv.id" class="flex items-center gap-3 p-3 bg-surface border border-border hover:border-primary/30 cursor-pointer transition-colors group rounded-md">
-                  <input type="checkbox" v-model="newStaff.service_ids" :value="srv.id" class="accent-primary w-4 h-4" />
-                  <div class="flex flex-col">
-                    <span class="text-xs text-text group-hover:text-primary transition-colors">{{ srv.name }}</span>
-                    <span class="text-[10px] text-textMuted uppercase tracking-widest">{{ srv.duration_min }} MIN</span>
-                  </div>
-                </label>
+          <form @submit.prevent="handleSaveStaff" class="flex flex-col min-h-0 flex-1">
+            <div class="space-y-6 overflow-y-auto pr-1 pb-4">
+              <input v-if="!editingStaffId" v-model="newStaff.name" type="text" placeholder="NOMBRE COMPLETO" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
+              <input v-if="!editingStaffId" v-model="newStaff.email" type="email" placeholder="CORREO DE ACCESO" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
+              <input v-if="!editingStaffId" v-model="newStaff.password" type="password" placeholder="CONTRASEÑA INICIAL" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
+              
+              <div class="pt-4 border-t border-border">
+                <label class="block text-primary uppercase tracking-widest text-[10px] mb-4 font-semibold">Servicios asignados</label>
+                <div v-if="services.length === 0" class="text-textMuted text-xs font-light">
+                  No hay servicios disponibles todavía. Crea primero un servicio en el catálogo.
+                </div>
+                <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-48 overflow-y-auto custom-scrollbar pr-2">
+                  <label v-for="srv in services" :key="srv.id" class="flex items-center gap-3 p-3 bg-surface border border-border hover:border-primary/30 cursor-pointer transition-colors group rounded-md">
+                    <input type="checkbox" v-model="newStaff.service_ids" :value="srv.id" class="accent-primary w-4 h-4" />
+                    <div class="flex flex-col">
+                      <span class="text-xs text-text group-hover:text-primary transition-colors">{{ srv.name }}</span>
+                      <span class="text-[10px] text-textMuted uppercase tracking-widest">{{ srv.duration_min }} MIN</span>
+                    </div>
+                  </label>
+                </div>
               </div>
             </div>
 
-            <div class="sticky bottom-0 bg-surface/95 backdrop-blur-sm flex justify-end gap-4 mt-10 pt-6 pb-2 border-t border-border">
+            <div class="shrink-0 flex flex-wrap justify-end gap-3 mt-6 pt-6 border-t border-border bg-surface">
               <button type="button" @click="showStaffModal = false" class="btn-secondary px-8 py-3 tracking-widest text-[10px]">Cancelar</button>
               <button type="submit" class="btn-primary px-8 py-3 tracking-widest text-[10px]">{{ editingStaffId ? 'Guardar cambios' : 'Registrar profesional' }}</button>
             </div>
@@ -807,11 +811,11 @@ const formatPrice = (value: number | string) => {
       <!-- Staff Schedule Modal -->
       <div v-if="showScheduleModal" class="fixed inset-0 z-50 flex items-start justify-center px-4 pt-16 pb-8 sm:px-6 sm:pt-20 sm:pb-10 md:px-8 md:pt-24 md:pb-12 overflow-y-auto">
         <div class="absolute inset-0 bg-background/80 backdrop-blur-sm" @click="showScheduleModal = false"></div>
-        <div class="w-full max-w-4xl my-2 sm:my-3 max-h-[calc(100dvh-5rem)] sm:max-h-[calc(100dvh-7rem)] overflow-y-auto custom-scrollbar bg-surface border border-border px-6 py-8 sm:px-10 sm:py-10 relative z-10 shadow-xl animate-fade-in-up rounded-xl">
+        <div class="w-full max-w-4xl my-2 sm:my-3 max-h-[calc(100dvh-5rem)] sm:max-h-[calc(100dvh-7rem)] custom-scrollbar bg-surface border border-border px-6 py-8 sm:px-10 sm:py-10 relative z-10 shadow-xl animate-fade-in-up rounded-xl flex flex-col">
           <h2 class="font-display text-3xl text-white mb-2">Horario de {{ scheduleTargetStaffName }}</h2>
           <p class="text-textMuted uppercase tracking-widest text-xs font-light mb-6 border-b border-border pb-4">Turno continuo o partido</p>
 
-          <div class="space-y-4">
+          <div class="space-y-4 overflow-y-auto pr-1 pb-4">
             <div v-for="day in staffScheduleForm" :key="day.day_of_week" class="p-4 rounded-lg bg-surface border border-border">
               <div class="flex flex-wrap items-center justify-between gap-4 mb-3">
                 <div class="flex items-center gap-3">
@@ -846,11 +850,11 @@ const formatPrice = (value: number | string) => {
             </div>
           </div>
 
-          <div class="mt-6 pt-4 border-t border-border flex items-center justify-between gap-4">
+          <div class="mt-6 pt-4 border-t border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0 bg-surface">
             <p class="text-xs" :class="scheduleSaveMsg.includes('invalido') || scheduleSaveMsg.includes('solapan') || scheduleSaveMsg.includes('No se pudo') || scheduleSaveMsg.includes('Error') ? 'text-red-700' : 'text-primary'">
               {{ scheduleSaveMsg }}
             </p>
-            <div class="flex gap-3">
+            <div class="flex flex-wrap gap-3 sm:justify-end">
               <button type="button" @click="showScheduleModal = false" class="btn-secondary px-8 py-3 tracking-widest text-[10px]">Cancelar</button>
               <button type="button" @click="saveStaffSchedule" class="btn-primary px-8 py-3 tracking-widest text-[10px]">Guardar horario</button>
             </div>
@@ -861,62 +865,64 @@ const formatPrice = (value: number | string) => {
       <!-- Create Booking Modal (Internal) -->
       <div v-if="showBookingModal" class="fixed inset-0 z-50 flex items-start justify-center px-4 pt-16 pb-8 sm:px-6 sm:pt-20 sm:pb-10 md:px-8 md:pt-24 md:pb-12 overflow-y-auto">
         <div class="absolute inset-0 bg-background/80 backdrop-blur-sm" @click="showBookingModal = false"></div>
-        <div class="w-full max-w-lg my-2 sm:my-3 max-h-[calc(100dvh-5rem)] sm:max-h-[calc(100dvh-7rem)] overflow-y-auto custom-scrollbar bg-surface border border-border px-6 py-8 sm:px-10 sm:py-10 relative z-10 shadow-xl animate-fade-in-up rounded-xl">
+        <div class="w-full max-w-lg my-2 sm:my-3 max-h-[calc(100dvh-5rem)] sm:max-h-[calc(100dvh-7rem)] custom-scrollbar bg-surface border border-border px-6 py-8 sm:px-10 sm:py-10 relative z-10 shadow-xl animate-fade-in-up rounded-xl flex flex-col">
           <h2 class="font-display text-3xl text-white mb-2">Reserva interna</h2>
           <p class="text-textMuted uppercase tracking-widest text-xs font-light mb-8 border-b border-border pb-6">Asigna manualmente un cliente en la agenda</p>
           
-          <form @submit.prevent="handleSaveBooking" class="space-y-6 pb-2">
-            <input v-model="newBooking.clientName" type="text" placeholder="NOMBRE DEL CLIENTE" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
-            <input v-model="newBooking.clientEmail" type="email" placeholder="CORREO DEL CLIENTE" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
-            
-            <div class="grid grid-cols-2 gap-4">
-              <select v-model="newBooking.serviceId" @change="handleServiceStaffChange" required class="input-premium text-xs tracking-widest text-text">
-                <option value="" disabled selected>SERVICIO</option>
-                <option v-for="s in services" :key="s.id" :value="s.id">{{ s.name }}</option>
-              </select>
-              <select v-model="newBooking.staffId" @change="handleServiceStaffChange" required class="input-premium text-xs tracking-widest text-text">
-                <option value="" disabled selected>PROFESIONAL</option>
-                <option v-for="st in staff" :key="st.id" :value="st.id">{{ st.user.name }}</option>
-              </select>
-            </div>
-
-            <div v-if="newBooking.serviceId && newBooking.staffId" class="animate-fade-in-up">
-               <label class="block text-primary uppercase tracking-widest text-[10px] mb-4 font-semibold">Selecciona fecha</label>
-               <CalendarPicker 
-                  :availabilityMap="monthlyAvailability"
-                  :selectedDate="newBooking.date"
-                  @month-change="handleMonthChange"
-                  @select="handleDateSelect"
-               />
-            </div>
-
-            <div class="grid grid-cols-1 gap-4 animate-fade-in-up" v-if="newBooking.date">
-              <label class="block text-primary uppercase tracking-widest text-[10px] mb-1 font-semibold">
-                Horarios disponibles para {{ formatDate(newBooking.date) }}
-              </label>
+          <form @submit.prevent="handleSaveBooking" class="flex flex-col min-h-0 flex-1">
+            <div class="space-y-6 overflow-y-auto pr-1 pb-4">
+              <input v-model="newBooking.clientName" type="text" placeholder="NOMBRE DEL CLIENTE" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
+              <input v-model="newBooking.clientEmail" type="email" placeholder="CORREO DEL CLIENTE" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
               
-              <div v-if="availableSlots.length === 0" class="flex flex-col items-center justify-center text-textMuted py-4">
-                <div class="w-12 h-[1px] bg-primary/30 mb-6"></div>
-                <p class="font-light tracking-widest text-[10px] uppercase">Sin disponibilidad</p>
+              <div class="grid grid-cols-2 gap-4">
+                <select v-model="newBooking.serviceId" @change="handleServiceStaffChange" required class="input-premium text-xs tracking-widest text-text">
+                  <option value="" disabled selected>SERVICIO</option>
+                  <option v-for="s in services" :key="s.id" :value="s.id">{{ s.name }}</option>
+                </select>
+                <select v-model="newBooking.staffId" @change="handleServiceStaffChange" required class="input-premium text-xs tracking-widest text-text">
+                  <option value="" disabled selected>PROFESIONAL</option>
+                  <option v-for="st in staff" :key="st.id" :value="st.id">{{ st.user.name }}</option>
+                </select>
               </div>
 
-              <div v-else class="grid grid-cols-3 gap-3 max-h-48 overflow-y-auto custom-scrollbar pr-2">
-                <button 
-                  v-for="slot in availableSlots" 
-                  :key="slot" 
-                  type="button"
-                  @click="newBooking.time = slot" 
-                  :class="['py-3 text-center border transition-all duration-300 text-sm font-light tracking-widest',
-                    newBooking.time === slot 
-                        ? 'bg-primary text-black border-primary shadow-[0_0_12px_rgba(57,203,105,0.35)] font-medium'
-                        : 'border-border bg-surface text-text hover:bg-primary/10 hover:border-primary/50'
-                  ]">
-                  {{ formatTime(slot) }}
-                </button>
+              <div v-if="newBooking.serviceId && newBooking.staffId" class="animate-fade-in-up">
+                 <label class="block text-primary uppercase tracking-widest text-[10px] mb-4 font-semibold">Selecciona fecha</label>
+                 <CalendarPicker 
+                    :availabilityMap="monthlyAvailability"
+                    :selectedDate="newBooking.date"
+                    @month-change="handleMonthChange"
+                    @select="handleDateSelect"
+                 />
+              </div>
+
+              <div class="grid grid-cols-1 gap-4 animate-fade-in-up" v-if="newBooking.date">
+                <label class="block text-primary uppercase tracking-widest text-[10px] mb-1 font-semibold">
+                  Horarios disponibles para {{ formatDate(newBooking.date) }}
+                </label>
+                
+                <div v-if="availableSlots.length === 0" class="flex flex-col items-center justify-center text-textMuted py-4">
+                  <div class="w-12 h-[1px] bg-primary/30 mb-6"></div>
+                  <p class="font-light tracking-widest text-[10px] uppercase">Sin disponibilidad</p>
+                </div>
+
+                <div v-else class="grid grid-cols-3 gap-3 max-h-48 overflow-y-auto custom-scrollbar pr-2">
+                  <button 
+                    v-for="slot in availableSlots" 
+                    :key="slot" 
+                    type="button"
+                    @click="newBooking.time = slot" 
+                    :class="['py-3 text-center border transition-all duration-300 text-sm font-light tracking-widest',
+                      newBooking.time === slot 
+                          ? 'bg-primary text-black border-primary shadow-[0_0_12px_rgba(57,203,105,0.35)] font-medium'
+                          : 'border-border bg-surface text-text hover:bg-primary/10 hover:border-primary/50'
+                    ]">
+                    {{ formatTime(slot) }}
+                  </button>
+                </div>
               </div>
             </div>
 
-            <div class="sticky bottom-0 bg-surface/95 backdrop-blur-sm flex justify-end gap-4 mt-10 pt-6 pb-2 border-t border-border">
+            <div class="shrink-0 flex flex-wrap justify-end gap-3 mt-6 pt-6 border-t border-border bg-surface">
               <button type="button" @click="showBookingModal = false" class="btn-secondary px-8 py-3 tracking-widest text-[10px]">Cancelar</button>
               <button type="submit" class="btn-primary px-8 py-3 tracking-widest text-[10px]" :disabled="!newBooking.time">Bloquear horario</button>
             </div>

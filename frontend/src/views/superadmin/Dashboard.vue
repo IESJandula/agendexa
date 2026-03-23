@@ -10,6 +10,7 @@ const showAddModal = ref(false);
 const newBusiness = ref({
   name: '',
   slug: '',
+  location: '',
   phone: '',
   settings: { slot_interval_minutes: 30 },
   ownerName: '',
@@ -45,6 +46,7 @@ const handleCreateBusiness = async () => {
     const payload = {
       businessName: newBusiness.value.name,
       businessSlug: newBusiness.value.slug,
+      businessLocation: newBusiness.value.location,
       businessPhone: newBusiness.value.phone,
       slotIntervalMinutes: newBusiness.value.settings.slot_interval_minutes,
       ownerName: newBusiness.value.ownerName,
@@ -60,7 +62,7 @@ const handleCreateBusiness = async () => {
     
     if (res.ok) {
       showAddModal.value = false;
-      newBusiness.value = { name: '', slug: '', phone: '', settings: { slot_interval_minutes: 30 }, ownerName: '', ownerEmail: '', ownerPassword: '' };
+      newBusiness.value = { name: '', slug: '', location: '', phone: '', settings: { slot_interval_minutes: 30 }, ownerName: '', ownerEmail: '', ownerPassword: '' };
       fetchBusinesses();
     } else {
       const data = await res.json();
@@ -126,13 +128,13 @@ const openOwnerView = (business: any) => {
           <p class="text-xs text-primary tracking-widest uppercase mb-6">ID / {{ b.slug }}</p>
           
           <div class="space-y-3 text-sm font-light">
-            <div class="flex justify-between border-b border-border pb-2">
+            <div class="flex items-start justify-between gap-4 border-b border-border pb-2">
               <span class="text-textMuted uppercase tracking-widest text-[10px]">Propietario</span>
-              <span class="text-white">{{ b.ownerProfiles?.[0]?.user?.name || 'Desconocido' }}</span>
+              <span class="text-white min-w-0 max-w-[65%] text-right truncate" :title="b.ownerProfiles?.[0]?.user?.name || 'Desconocido'">{{ b.ownerProfiles?.[0]?.user?.name || 'Desconocido' }}</span>
             </div>
-            <div class="flex justify-between border-b border-border pb-2">
+            <div class="flex items-start justify-between gap-4 border-b border-border pb-2">
               <span class="text-textMuted uppercase tracking-widest text-[10px]">Contacto</span>
-              <span class="text-white">{{ b.ownerProfiles?.[0]?.user?.email || 'Desconocido' }}</span>
+              <span class="text-white min-w-0 max-w-[65%] text-right truncate" :title="b.ownerProfiles?.[0]?.user?.email || 'Desconocido'">{{ b.ownerProfiles?.[0]?.user?.email || 'Desconocido' }}</span>
             </div>
             <div class="flex justify-between pb-2">
               <span class="text-textMuted uppercase tracking-widest text-[10px]">Intervalo de agenda</span>
@@ -152,44 +154,49 @@ const openOwnerView = (business: any) => {
     <!-- Provisioning Modal -->
     <div v-if="showAddModal" class="fixed inset-0 z-50 flex items-start justify-center px-4 pt-16 pb-8 sm:px-6 sm:pt-20 sm:pb-10 md:px-8 md:pt-24 md:pb-12 overflow-y-auto">
       <div class="absolute inset-0 bg-background/80 backdrop-blur-sm" @click="showAddModal = false"></div>
-      <div class="w-full max-w-2xl my-2 sm:my-3 max-h-[calc(100dvh-5rem)] sm:max-h-[calc(100dvh-7rem)] overflow-y-auto custom-scrollbar bg-surface border border-border px-6 py-8 sm:px-10 sm:py-10 relative z-10 shadow-xl animate-fade-in-up rounded-xl">
+      <div class="w-full max-w-2xl my-2 sm:my-3 max-h-[calc(100dvh-5rem)] sm:max-h-[calc(100dvh-7rem)] custom-scrollbar bg-surface border border-border px-6 py-8 sm:px-10 sm:py-10 relative z-10 shadow-xl animate-fade-in-up rounded-xl flex flex-col">
         
         <h2 class="font-display text-3xl text-text mb-2">Alta de negocio</h2>
         <p class="text-textMuted uppercase tracking-widest text-xs font-light mb-8 border-b border-border pb-6">Crea un nuevo negocio y su perfil propietario</p>
         
-        <form @submit.prevent="handleCreateBusiness" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 pb-2">
-          <div class="col-span-1 md:col-span-2">
-            <h3 class="text-primary uppercase tracking-widest text-[10px] mb-4 font-semibold">Datos del negocio</h3>
+        <form @submit.prevent="handleCreateBusiness" class="flex flex-col min-h-0 flex-1">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 overflow-y-auto pr-1 pb-4">
+            <div class="col-span-1 md:col-span-2">
+              <h3 class="text-primary uppercase tracking-widest text-[10px] mb-4 font-semibold">Datos del negocio</h3>
+            </div>
+            
+            <div>
+              <input v-model="newBusiness.name" type="text" placeholder="NOMBRE DEL NEGOCIO" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
+            </div>
+            <div>
+              <input v-model="newBusiness.slug" type="text" placeholder="ID DE SISTEMA (SLUG)" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
+            </div>
+            <div>
+              <input v-model="newBusiness.location" type="text" placeholder="UBICACION (CIUDAD/ZONA)" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
+            </div>
+            <div>
+              <input v-model="newBusiness.phone" type="text" placeholder="TELÉFONO DE CONTACTO" class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
+            </div>
+            <div>
+              <input v-model.number="newBusiness.settings.slot_interval_minutes" type="number" placeholder="INTERVALO DE AGENDA" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
+            </div>
+            
+            <div class="col-span-1 md:col-span-2 mt-4">
+              <h3 class="text-primary uppercase tracking-widest text-[10px] mb-4 font-semibold">Perfil del propietario</h3>
+            </div>
+            
+            <div>
+              <input v-model="newBusiness.ownerName" type="text" placeholder="NOMBRE DEL PROPIETARIO" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
+            </div>
+            <div>
+              <input v-model="newBusiness.ownerEmail" type="email" placeholder="CORREO DEL PROPIETARIO" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
+            </div>
+            <div class="col-span-1 md:col-span-2">
+              <input v-model="newBusiness.ownerPassword" type="password" placeholder="CONTRASEÑA" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
+            </div>
           </div>
-          
-          <div>
-            <input v-model="newBusiness.name" type="text" placeholder="NOMBRE DEL NEGOCIO" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
-          </div>
-          <div>
-            <input v-model="newBusiness.slug" type="text" placeholder="ID DE SISTEMA (SLUG)" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
-          </div>
-          <div>
-            <input v-model="newBusiness.phone" type="text" placeholder="TELÉFONO DE CONTACTO" class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
-          </div>
-          <div>
-            <input v-model.number="newBusiness.settings.slot_interval_minutes" type="number" placeholder="INTERVALO DE AGENDA" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
-          </div>
-          
-          <div class="col-span-1 md:col-span-2 mt-4">
-            <h3 class="text-primary uppercase tracking-widest text-[10px] mb-4 font-semibold">Perfil del propietario</h3>
-          </div>
-          
-          <div>
-            <input v-model="newBusiness.ownerName" type="text" placeholder="NOMBRE DEL PROPIETARIO" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
-          </div>
-          <div>
-            <input v-model="newBusiness.ownerEmail" type="email" placeholder="CORREO DEL PROPIETARIO" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
-          </div>
-          <div class="col-span-1 md:col-span-2">
-            <input v-model="newBusiness.ownerPassword" type="password" placeholder="CONTRASEÑA" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
-          </div>
-          
-          <div class="col-span-1 md:col-span-2 sticky bottom-0 bg-surface/95 backdrop-blur-sm flex justify-end gap-4 mt-10 pt-6 pb-2 border-t border-border">
+
+          <div class="flex justify-end gap-4 mt-6 pt-6 border-t border-border">
             <button type="button" @click="showAddModal = false" class="btn-secondary px-8 py-3 tracking-widest text-[10px]">Cancelar</button>
             <button type="submit" class="btn-primary px-8 py-3 tracking-widest text-[10px]">Crear negocio</button>
           </div>
