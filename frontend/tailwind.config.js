@@ -18,8 +18,8 @@ export default {
                 brandDark: "#015351"
             },
             fontFamily: {
-                sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-                display: ['Cinzel', 'serif'],
+                sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                display: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
             }
         },
     },

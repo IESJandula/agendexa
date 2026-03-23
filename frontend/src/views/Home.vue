@@ -86,7 +86,7 @@ const handleSearch = () => {
         </div>
 
         <!-- Search Results Dropdown -->
-        <div v-if="searchQuery && (searchResults.length > 0 || !isSearching)" class="absolute left-4 right-4 mt-2 bg-surface border border-border z-50 shadow-xl rounded-lg overflow-hidden">
+        <div v-if="searchQuery && (searchResults.length > 0 || !isSearching)" class="mt-2 bg-surface border border-border z-50 shadow-xl rounded-lg overflow-hidden max-h-[52vh] overflow-y-auto">
           <div v-if="searchResults.length === 0 && !isSearching" class="p-6 text-center text-textMuted font-light text-sm italic">
             No se encontraron negocios con ese nombre.
           </div>
@@ -95,7 +95,7 @@ const handleSearch = () => {
             v-for="biz in searchResults" 
             :key="biz.id"
             :to="`/book/${biz.slug}`"
-            class="block p-5 border-b border-border hover:bg-surfaceHover transition-colors group flex items-center justify-between"
+            class="p-5 border-b border-border hover:bg-surfaceHover transition-colors group flex items-center justify-between"
           >
             <div>
               <h4 class="font-display text-xl text-text group-hover:text-brandDark transition-colors">{{ biz.name }}</h4>
