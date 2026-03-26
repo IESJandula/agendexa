@@ -15,6 +15,7 @@ const service_routes_1 = __importDefault(require("./routes/service.routes"));
 const staff_routes_1 = __importDefault(require("./routes/staff.routes"));
 const public_routes_1 = __importDefault(require("./routes/public.routes"));
 const appointment_routes_1 = __importDefault(require("./routes/appointment.routes"));
+const appointment_reminder_service_1 = require("./services/appointment-reminder.service");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const port = process.env.PORT || 3000;
@@ -54,4 +55,5 @@ async function initSuperAdmin() {
 app.listen(port, async () => {
     console.log(`Server running on http://localhost:${port}`);
     await initSuperAdmin();
+    (0, appointment_reminder_service_1.startAppointmentReminderJob)(exports.prisma);
 });

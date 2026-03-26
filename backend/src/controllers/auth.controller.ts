@@ -12,7 +12,7 @@ export const login = async (req: Request, res: Response) => {
         }
 
         const user = await prisma.user.findUnique({
-            where: { email },
+            where: { email: email.toLowerCase() },
             include: {
                 ownerProfiles: true,
                 staffProfiles: true
@@ -53,6 +53,7 @@ export const login = async (req: Request, res: Response) => {
                 id: user.id,
                 name: user.name,
                 email: user.email,
+                phone: user.phone,
                 role: user.role,
                 business_id
             }
@@ -65,14 +66,21 @@ export const login = async (req: Request, res: Response) => {
 
 export const registerClient = async (req: Request, res: Response) => {
     try {
-        const { name, email, password } = req.body;
+        const { name, email, password, phone } = req.body;
 
-        if (!name || !email || !password) {
-            return res.status(400).json({ error: 'Name, email, and password are required' });
+        if (!name || !email || !password || !phone) {
+            return res.status(400).json({ error: 'Name, email, phone, and password are required' });
+        }
+
+        const normalizedEmail = String(email).trim().toLowerCase();
+        const normalizedPhone = String(phone).trim();
+
+        if (normalizedPhone.length < 7) {
+            return res.status(400).json({ error: 'Invalid phone number' });
         }
 
         // Check if user already exists
-        const existingUser = await prisma.user.findUnique({ where: { email } });
+        const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
 
         let user;
         const salt = await bcrypt.genSalt(10);
@@ -85,6 +93,7 @@ export const registerClient = async (req: Request, res: Response) => {
                     where: { id: existingUser.id },
                     data: {
                         name,
+                        phone: normalizedPhone,
                         password_hash: hashedPassword,
                         role: 'CLIENT'
                     }
@@ -97,7 +106,8 @@ export const registerClient = async (req: Request, res: Response) => {
             user = await prisma.user.create({
                 data: {
                     name,
-                    email,
+                    email: normalizedEmail,
+                    phone: normalizedPhone,
                     password_hash: hashedPassword,
                     role: 'CLIENT'
                 }
@@ -121,6 +131,7 @@ export const registerClient = async (req: Request, res: Response) => {
                 id: user.id,
                 name: user.name,
                 email: user.email,
+                phone: user.phone,
                 role: user.role
             }
         });

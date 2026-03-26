@@ -207,7 +207,7 @@ const historyAppointments = computed(() => {
   return appointments.value
     .filter((a) => {
       const date = new Date(a.start_datetime_utc);
-      const isPast = date < now || a.status !== 'CONFIRMED';
+      const isPast = date < now || ['COMPLETED', 'CANCELLED'].includes(a.status);
       return isPast && date >= from && date <= now;
     })
     .sort((a, b) => new Date(b.start_datetime_utc).getTime() - new Date(a.start_datetime_utc).getTime());
@@ -454,6 +454,12 @@ const openBookingModal = () => {
 };
 
 const handleSaveBooking = async () => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    alert('Tu sesion ha caducado. Inicia sesion de nuevo.');
+    return;
+  }
+
   try {
     const payload = {
       clientName: newBooking.value.clientName,
@@ -465,7 +471,10 @@ const handleSaveBooking = async () => {
 
     const res = await fetch(`http://localhost:3000/public/${businessSlug.value}/book`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
       body: JSON.stringify(payload)
     });
     
@@ -487,6 +496,7 @@ const logout = () => {
 };
 
 const translateStatus = (status: string) => {
+  if (status === 'PENDING_CONFIRMATION') return 'Pendiente de confirmacion';
   if (status === 'CONFIRMED') return 'Confirmada';
   if (status === 'COMPLETED') return 'Completada';
   if (status === 'CANCELLED') return 'Cancelada';
@@ -609,13 +619,13 @@ const formatPrice = (value: number | string) => {
                 </div>
 
                 <div class="flex items-center gap-3">
-                  <span :class="['text-xs uppercase tracking-[0.2em] font-medium border-b pb-1', app.status === 'CONFIRMED' ? 'text-primary border-primary/30' : app.status === 'COMPLETED' ? 'text-neutral-500 border-neutral-700' : 'text-red-500/70 border-red-900/50']">
+                  <span :class="['text-xs uppercase tracking-[0.2em] font-medium border-b pb-1', app.status === 'PENDING_CONFIRMATION' ? 'text-amber-400 border-amber-400/40' : app.status === 'CONFIRMED' ? 'text-primary border-primary/30' : app.status === 'COMPLETED' ? 'text-neutral-500 border-neutral-700' : 'text-red-500/70 border-red-900/50']">
                     {{ translateStatus(app.status) }}
                   </span>
                   <button v-if="app.status === 'CONFIRMED'" @click="updateAppointmentStatus(app.id, 'COMPLETED')" class="w-9 h-9 border border-border hover:border-primary text-textMuted hover:text-primary flex items-center justify-center transition-all bg-surface rounded-md" title="Marcar como completada">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M5 13l4 4L19 7" /></svg>
                   </button>
-                  <button v-if="app.status === 'CONFIRMED'" @click="updateAppointmentStatus(app.id, 'CANCELLED')" class="w-9 h-9 border border-border hover:border-red-400 text-textMuted hover:text-red-600 flex items-center justify-center transition-all bg-surface rounded-md" title="Cancelar">
+                  <button v-if="['PENDING_CONFIRMATION', 'CONFIRMED'].includes(app.status)" @click="updateAppointmentStatus(app.id, 'CANCELLED')" class="w-9 h-9 border border-border hover:border-red-400 text-textMuted hover:text-red-600 flex items-center justify-center transition-all bg-surface rounded-md" title="Cancelar">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M6 18L18 6M6 6l12 12" /></svg>
                   </button>
                 </div>

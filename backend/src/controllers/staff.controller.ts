@@ -46,6 +46,7 @@ export const getMe = async (req: AuthRequest, res: Response) => {
             where: { user_id },
             include: {
                 user: { select: { id: true, name: true, email: true } },
+                business: { select: { id: true, slug: true, name: true } },
                 services: { select: { service: true } },
                 schedules: true,
                 appointments: {

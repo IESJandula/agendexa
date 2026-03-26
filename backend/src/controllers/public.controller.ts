@@ -1,5 +1,8 @@
 import { Request, Response } from 'express';
 import { prisma } from '../index';
+import { AuthRequest } from '../middlewares/auth.middleware';
+import { randomBytes } from 'crypto';
+import { sendAppointmentConfirmationEmail } from '../services/booking-mail.service';
 
 type TimeRange = {
     startMinutes: number;
@@ -231,7 +234,7 @@ export const getAvailability = async (req: Request, res: Response) => {
         const appointments = await prisma.appointment.findMany({
             where: {
                 staff_id: String(staffId),
-                status: { in: ['CONFIRMED', 'COMPLETED'] },
+                status: { in: ['PENDING_CONFIRMATION', 'CONFIRMED', 'COMPLETED'] },
                 start_datetime_utc: { lte: endOfDay },
                 end_datetime_utc: { gte: startOfDay }
             }
@@ -313,7 +316,7 @@ export const getMonthlyAvailability = async (req: Request, res: Response) => {
         const appointments = await prisma.appointment.findMany({
             where: {
                 staff_id: String(staffId),
-                status: { in: ['CONFIRMED', 'COMPLETED'] },
+                status: { in: ['PENDING_CONFIRMATION', 'CONFIRMED', 'COMPLETED'] },
                 start_datetime_utc: { lte: endDate },
                 end_datetime_utc: { gte: startDate }
             }
@@ -370,10 +373,14 @@ export const getMonthlyAvailability = async (req: Request, res: Response) => {
     }
 };
 
-export const bookAppointment = async (req: Request, res: Response) => {
+export const bookAppointment = async (req: AuthRequest, res: Response) => {
     try {
         const { slug } = req.params;
         const { serviceId, staffId, startDatetimeUtc, clientName, clientEmail, clientPhone } = req.body;
+
+        if (!req.user) {
+            return res.status(401).json({ error: 'Debes iniciar sesion para reservar una cita' });
+        }
 
         const business = await prisma.business.findUnique({ where: { slug } });
         if (!business) return res.status(404).json({ error: 'Business not found' });
@@ -383,6 +390,30 @@ export const bookAppointment = async (req: Request, res: Response) => {
 
         const slotStart = new Date(startDatetimeUtc);
         const slotEnd = new Date(slotStart.getTime() + service.duration_min * 60000);
+        const confirmationToken = randomBytes(32).toString('hex');
+
+        const requester = req.user;
+        const isClientBookingOwnAppointment = requester.role === 'CLIENT';
+
+        let targetClientUser = null;
+        if (isClientBookingOwnAppointment) {
+            targetClientUser = await prisma.user.findUnique({ where: { id: requester.id } });
+            if (!targetClientUser || targetClientUser.role !== 'CLIENT') {
+                return res.status(403).json({ error: 'Solo los clientes pueden reservar para su propia cuenta' });
+            }
+
+            if (clientEmail && String(clientEmail).trim().toLowerCase() !== requester.email.toLowerCase()) {
+                return res.status(400).json({ error: 'Debes reservar con el mismo correo de tu cuenta' });
+            }
+        } else {
+            targetClientUser = await prisma.user.findUnique({
+                where: { email: String(clientEmail || '').trim().toLowerCase() }
+            });
+
+            if (!targetClientUser || targetClientUser.role !== 'CLIENT') {
+                return res.status(400).json({ error: 'El correo indicado no corresponde a ninguna cuenta de cliente' });
+            }
+        }
 
         // Concurrency check using transactions
         const result = await prisma.$transaction(async (tx) => {
@@ -413,15 +444,18 @@ export const bookAppointment = async (req: Request, res: Response) => {
                 throw new Error('Slot overlaps with staff time-off');
             }
 
-            // Let's create a Client User and their ClientProfile!
-            let clientUser = await tx.user.findUnique({ where: { email: clientEmail } });
-            if (!clientUser) {
-                clientUser = await tx.user.create({
+            // Booking is always linked to an existing client account.
+            let clientUser = await tx.user.findUnique({ where: { id: targetClientUser!.id } });
+            if (!clientUser || clientUser.role !== 'CLIENT') {
+                throw new Error('Client account not found');
+            }
+
+            if (!isClientBookingOwnAppointment && clientName && clientName.trim()) {
+                await tx.user.update({
+                    where: { id: clientUser.id },
                     data: {
-                        email: clientEmail,
-                        name: clientName,
-                        password_hash: '', // No login required for guest
-                        role: 'CLIENT'
+                        name: clientName.trim(),
+                        ...(clientPhone ? { phone: String(clientPhone).trim() } : {})
                     }
                 });
             }
@@ -453,19 +487,92 @@ export const bookAppointment = async (req: Request, res: Response) => {
                     service_id: serviceId,
                     start_datetime_utc: slotStart,
                     end_datetime_utc: slotEnd,
-                    status: 'CONFIRMED'
+                    status: 'PENDING_CONFIRMATION',
+                    confirmation_token: confirmationToken,
+                    confirmation_expires_at: slotStart
                 }
             });
 
             return newAppt;
         });
 
-        return res.status(201).json(result);
+        const fullAppointment = await prisma.appointment.findUnique({
+            where: { id: result.id },
+            include: {
+                business: { select: { name: true } },
+                service: { select: { name: true } },
+                staff: { include: { user: { select: { name: true } } } },
+                client: { include: { user: { select: { email: true, name: true } } } }
+            }
+        });
+
+        if (fullAppointment?.client?.user?.email && fullAppointment.confirmation_token) {
+            await sendAppointmentConfirmationEmail({
+                to: fullAppointment.client.user.email,
+                clientName: fullAppointment.client.user.name,
+                businessName: fullAppointment.business.name,
+                serviceName: fullAppointment.service.name,
+                staffName: fullAppointment.staff.user.name,
+                startDate: fullAppointment.start_datetime_utc,
+                confirmationToken: fullAppointment.confirmation_token
+            });
+        }
+
+        return res.status(201).json({
+            ...result,
+            bookingNotice: 'Reserva creada en estado pendiente. Hemos enviado un email para confirmar la cita.'
+        });
     } catch (error: any) {
         if (error.message.includes('overlap')) {
             return res.status(409).json({ error: error.message });
         }
+        if (error.message.includes('Client account not found')) {
+            return res.status(400).json({ error: 'No se encontro una cuenta de cliente valida para el correo indicado' });
+        }
         console.error(error);
         return res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+export const confirmAppointmentByToken = async (req: Request, res: Response) => {
+    try {
+        const token = String(req.query.token || '').trim();
+        if (!token) {
+            return res.status(400).send('<h2>Token de confirmacion no valido.</h2>');
+        }
+
+        const appointment = await prisma.appointment.findUnique({
+            where: { confirmation_token: token }
+        });
+
+        if (!appointment) {
+            return res.status(404).send('<h2>La reserva no existe o ya fue confirmada.</h2>');
+        }
+
+        if (appointment.status === 'CONFIRMED') {
+            return res.status(200).send('<h2>Tu cita ya estaba confirmada.</h2>');
+        }
+
+        if (appointment.status !== 'PENDING_CONFIRMATION') {
+            return res.status(400).send('<h2>Esta cita no se puede confirmar en su estado actual.</h2>');
+        }
+
+        if (appointment.confirmation_expires_at && appointment.confirmation_expires_at.getTime() < Date.now()) {
+            return res.status(410).send('<h2>El enlace de confirmacion ha caducado.</h2>');
+        }
+
+        await prisma.appointment.update({
+            where: { id: appointment.id },
+            data: {
+                status: 'CONFIRMED',
+                confirmed_at: new Date(),
+                confirmation_token: null
+            }
+        });
+
+        return res.status(200).send('<h2>Cita confirmada correctamente.</h2><p>Ya puedes cerrar esta ventana.</p>');
+    } catch (error) {
+        console.error(error);
+        return res.status(500).send('<h2>Error interno al confirmar la cita.</h2>');
     }
 };

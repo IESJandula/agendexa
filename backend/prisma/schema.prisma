@@ -13,6 +13,7 @@ model User {
   password_hash  String
   role           Role
   name           String
+  phone          String?
   created_at     DateTime        @default(now())
   clientProfiles ClientProfile[]
   ownerProfiles  OwnerProfile[]
@@ -134,7 +135,11 @@ model Appointment {
   service_id         String
   start_datetime_utc DateTime
   end_datetime_utc   DateTime
-  status             AppointmentStatus @default(CONFIRMED)
+  status             AppointmentStatus @default(PENDING_CONFIRMATION)
+  confirmation_token String?           @unique
+  confirmation_expires_at DateTime?
+  confirmed_at       DateTime?
+  reminder_sent_at   DateTime?
   business           Business          @relation(fields: [business_id], references: [id])
   client             ClientProfile?    @relation(fields: [client_id], references: [id])
   service            Service           @relation(fields: [service_id], references: [id])
@@ -154,6 +159,7 @@ enum Role {
 }
 
 enum AppointmentStatus {
+  PENDING_CONFIRMATION
   CONFIRMED
   COMPLETED
   CANCELLED

@@ -10,6 +10,7 @@ import serviceRoutes from './routes/service.routes';
 import staffRoutes from './routes/staff.routes';
 import publicRoutes from './routes/public.routes';
 import appointmentRoutes from './routes/appointment.routes';
+import { startAppointmentReminderJob } from './services/appointment-reminder.service';
 
 dotenv.config();
 
@@ -55,4 +56,5 @@ async function initSuperAdmin() {
 app.listen(port, async () => {
     console.log(`Server running on http://localhost:${port}`);
     await initSuperAdmin();
+    startAppointmentReminderJob(prisma);
 });

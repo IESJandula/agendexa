@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 import CalendarPicker from '../../components/CalendarPicker.vue';
 
@@ -11,6 +11,7 @@ const trackEvent = (eventName: string, properties: any = {}) => {
 };
 
 const route = useRoute();
+const router = useRouter();
 const slug = route.params.slug as string;
 
 const step = ref(1); // 1: Service, 2: Staff, 3: Date/Time, 4: Details, 5: Confirmation
@@ -35,16 +36,25 @@ const booking = ref({
 });
 
 onMounted(async () => {
-  // Pre-fill client data if logged in
+  const token = localStorage.getItem('token');
   const userStr = localStorage.getItem('user');
-  if (userStr) {
-    try {
-      const user = JSON.parse(userStr);
-      if (user.role === 'CLIENT') {
-        booking.value.clientName = user.name || '';
-        booking.value.clientEmail = user.email || '';
-      }
-    } catch(e) {}
+
+  if (!token || !userStr) {
+    router.push(`/client/login?redirect=/book/${slug}`);
+    return;
+  }
+
+  try {
+    const user = JSON.parse(userStr);
+    if (user.role !== 'CLIENT') {
+      router.push('/client/login');
+      return;
+    }
+    booking.value.clientName = user.name || '';
+    booking.value.clientEmail = user.email || '';
+  } catch {
+    router.push(`/client/login?redirect=/book/${slug}`);
+    return;
   }
 
   try {
@@ -119,11 +129,20 @@ const handleDateSelect = async (dateStr: string) => {
 };
 
 const submitBooking = async () => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    router.push(`/client/login?redirect=/book/${slug}`);
+    return;
+  }
+
   try {
     trackEvent('attempt_booking', { service_id: booking.value.serviceId });
     const res = await fetch(`http://localhost:3000/public/${slug}/book`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
       body: JSON.stringify(booking.value)
     });
     if (res.ok) {
@@ -289,8 +308,8 @@ const selectedStaffName = computed(() => staff.value.find(s => s.id === booking.
             </div>
           </div>
           
-          <h2 class="font-display text-4xl mb-4 text-text">Reserva confirmada</h2>
-          <p class="text-textMuted font-light max-w-sm mb-6 leading-relaxed">Tu reserva se ha completado. Revisa tu bandeja de entrada para ver el correo de confirmación.</p>
+          <h2 class="font-display text-4xl mb-4 text-text">Reserva pendiente</h2>
+          <p class="text-textMuted font-light max-w-sm mb-6 leading-relaxed">Tu reserva se ha creado en estado pendiente. Revisa tu correo y pulsa el enlace de confirmación para validarla.</p>
           <p class="text-sm tracking-widest text-primary border-t border-b border-primary/20 py-3 w-full">{{ formatTime(booking.startDatetimeUtc) }} // {{ formatDate(booking.startDatetimeUtc) }}</p>
           
           <button @click="step = 1; targetDate = new Date().toISOString().split('T')[0] || ''" class="mt-16 text-xs uppercase tracking-widest text-textMuted hover:text-brandDark transition-colors border-b border-border pb-1">

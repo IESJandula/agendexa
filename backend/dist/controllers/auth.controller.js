@@ -14,7 +14,7 @@ const login = async (req, res) => {
             return res.status(400).json({ error: 'Email and password are required' });
         }
         const user = await index_1.prisma.user.findUnique({
-            where: { email },
+            where: { email: email.toLowerCase() },
             include: {
                 ownerProfiles: true,
                 staffProfiles: true
@@ -50,6 +50,7 @@ const login = async (req, res) => {
                 id: user.id,
                 name: user.name,
                 email: user.email,
+                phone: user.phone,
                 role: user.role,
                 business_id
             }
@@ -63,12 +64,17 @@ const login = async (req, res) => {
 exports.login = login;
 const registerClient = async (req, res) => {
     try {
-        const { name, email, password } = req.body;
-        if (!name || !email || !password) {
-            return res.status(400).json({ error: 'Name, email, and password are required' });
+        const { name, email, password, phone } = req.body;
+        if (!name || !email || !password || !phone) {
+            return res.status(400).json({ error: 'Name, email, phone, and password are required' });
+        }
+        const normalizedEmail = String(email).trim().toLowerCase();
+        const normalizedPhone = String(phone).trim();
+        if (normalizedPhone.length < 7) {
+            return res.status(400).json({ error: 'Invalid phone number' });
         }
         // Check if user already exists
-        const existingUser = await index_1.prisma.user.findUnique({ where: { email } });
+        const existingUser = await index_1.prisma.user.findUnique({ where: { email: normalizedEmail } });
         let user;
         const salt = await bcryptjs_1.default.genSalt(10);
         const hashedPassword = await bcryptjs_1.default.hash(password, salt);
@@ -79,6 +85,7 @@ const registerClient = async (req, res) => {
                     where: { id: existingUser.id },
                     data: {
                         name,
+                        phone: normalizedPhone,
                         password_hash: hashedPassword,
                         role: 'CLIENT'
                     }
@@ -93,7 +100,8 @@ const registerClient = async (req, res) => {
             user = await index_1.prisma.user.create({
                 data: {
                     name,
-                    email,
+                    email: normalizedEmail,
+                    phone: normalizedPhone,
                     password_hash: hashedPassword,
                     role: 'CLIENT'
                 }
@@ -114,6 +122,7 @@ const registerClient = async (req, res) => {
                 id: user.id,
                 name: user.name,
                 email: user.email,
+                phone: user.phone,
                 role: user.role
             }
         });

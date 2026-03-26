@@ -7,6 +7,7 @@ const route = useRoute();
 
 const name = ref('');
 const email = ref('');
+const phone = ref('');
 const password = ref('');
 const errorMsg = ref('');
 const loading = ref(false);
@@ -18,7 +19,7 @@ const handleRegister = async () => {
     const res = await fetch('http://localhost:3000/auth/register/client', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name.value, email: email.value, password: password.value })
+      body: JSON.stringify({ name: name.value, email: email.value, phone: phone.value, password: password.value })
     });
     const data = await res.json();
     
@@ -70,6 +71,11 @@ const handleRegister = async () => {
         <div>
           <label class="block text-textMuted uppercase tracking-widest text-[10px] mb-2 font-semibold">Correo electrónico</label>
           <input v-model="email" type="email" required placeholder="tu@email.com" class="input-premium text-sm tracking-wide transition-all w-full" />
+        </div>
+
+        <div>
+          <label class="block text-textMuted uppercase tracking-widest text-[10px] mb-2 font-semibold">Teléfono</label>
+          <input v-model="phone" type="tel" required placeholder="600123123" class="input-premium text-sm tracking-wide transition-all w-full" />
         </div>
 
         <div>

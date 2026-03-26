@@ -1,2 +1,2 @@
 -- AlterTable
-ALTER TABLE `business` ADD COLUMN `location` VARCHAR(191) NULL;
+ALTER TABLE `Business` ADD COLUMN `location` VARCHAR(191) NULL;
