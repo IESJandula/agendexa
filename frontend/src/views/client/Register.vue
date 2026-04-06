@@ -56,19 +56,19 @@ const handleRegister = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen w-full flex flex-col items-center justify-center p-4 relative overflow-hidden">
+  <div class="min-h-screen w-full flex items-center justify-center p-4 sm:p-6 relative overflow-hidden">
     <!-- Texture & Grain -->
     <div class="absolute inset-0 z-0 opacity-[0.02] pointer-events-none" style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E');"></div>
     <!-- Flare bg -->
     <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/10 rounded-[100%] blur-[120px] pointer-events-none mix-blend-screen"></div>
 
-    <div class="w-full max-w-[400px] relative z-10 animate-fade-in-up">
+    <div class="w-full max-w-lg relative z-10 animate-fade-in-up">
       <div class="mb-10 text-center">
-        <h2 class="font-display font-medium text-3xl tracking-wide uppercase text-white mb-2">Crear cuenta</h2>
+        <h2 class="font-display font-bold text-3xl tracking-wide uppercase text-text mb-2">Crear cuenta</h2>
         <p class="text-textMuted uppercase tracking-widest text-xs font-light">Acceso para clientes</p>
       </div>
 
-      <form @submit.prevent="handleRegister" class="space-y-6 bg-surface p-8 border border-border shadow-xl rounded-xl backdrop-blur-sm">
+      <form @submit.prevent="handleRegister" class="space-y-6 bg-surface border border-border shadow-xl rounded-xl backdrop-blur-sm p-10 sm:p-12">
         <div v-if="errorMsg" class="p-4 bg-red-50 border border-red-200 text-red-700 text-xs tracking-widest uppercase text-center rounded-md">
           {{ errorMsg }}
         </div>

@@ -181,7 +181,7 @@ const translateStatus = (status: string) => {
 </script>
 
 <template>
-  <div class="flex-1 w-full max-w-[1200px] mx-auto p-4 sm:p-6 md:p-10 pt-6 md:pt-8 flex flex-col md:flex-row gap-6 md:gap-8 lg:gap-16 min-h-screen relative overflow-hidden">
+  <div class="flex-1 w-full max-w-none p-2 sm:p-3 md:p-4 pt-4 md:pt-5 flex flex-col md:flex-row gap-6 md:gap-8 lg:gap-16 min-h-screen relative overflow-hidden">
     
     <!-- Background textures -->
     <div class="absolute inset-0 z-0 opacity-[0.02] pointer-events-none" style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.85%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22/%3E%3C/svg%3E');"></div>

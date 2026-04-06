@@ -2,12 +2,25 @@ import { Request, Response } from 'express';
 import { prisma } from '../index';
 import bcrypt from 'bcryptjs';
 
+const PHONE_REGEX = /^\+?[\d\s().-]+$/;
+
+const isValidPhone = (phone: string) => {
+    const normalized = String(phone).trim();
+    const digits = normalized.replace(/\D/g, '');
+    return PHONE_REGEX.test(normalized) && digits.length >= 7 && digits.length <= 15;
+};
+
 export const createBusiness = async (req: Request, res: Response) => {
     try {
         const { ownerName, ownerEmail, ownerPassword, businessName, businessSlug, businessLocation, businessPhone, slotIntervalMinutes } = req.body;
 
-        if (!ownerName || !ownerEmail || !ownerPassword || !businessName || !businessSlug || !businessLocation) {
+        if (!ownerName || !ownerEmail || !ownerPassword || !businessName || !businessSlug || !businessLocation || !businessPhone) {
             return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        const normalizedBusinessPhone = String(businessPhone).trim();
+        if (!isValidPhone(normalizedBusinessPhone)) {
+            return res.status(400).json({ error: 'Invalid phone number' });
         }
 
         // Check if user already exists
@@ -41,7 +54,7 @@ export const createBusiness = async (req: Request, res: Response) => {
                     name: businessName,
                     slug: businessSlug,
                     location: String(businessLocation).trim(),
-                    phone: businessPhone,
+                    phone: normalizedBusinessPhone,
                     slot_interval_minutes: slotIntervalMinutes || 30
                 }
             });

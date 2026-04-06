@@ -6,11 +6,21 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getBusinesses = exports.createBusiness = void 0;
 const index_1 = require("../index");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const PHONE_REGEX = /^\+?[\d\s().-]+$/;
+const isValidPhone = (phone) => {
+    const normalized = String(phone).trim();
+    const digits = normalized.replace(/\D/g, '');
+    return PHONE_REGEX.test(normalized) && digits.length >= 7 && digits.length <= 15;
+};
 const createBusiness = async (req, res) => {
     try {
         const { ownerName, ownerEmail, ownerPassword, businessName, businessSlug, businessLocation, businessPhone, slotIntervalMinutes } = req.body;
-        if (!ownerName || !ownerEmail || !ownerPassword || !businessName || !businessSlug || !businessLocation) {
+        if (!ownerName || !ownerEmail || !ownerPassword || !businessName || !businessSlug || !businessLocation || !businessPhone) {
             return res.status(400).json({ error: 'Missing required fields' });
+        }
+        const normalizedBusinessPhone = String(businessPhone).trim();
+        if (!isValidPhone(normalizedBusinessPhone)) {
+            return res.status(400).json({ error: 'Invalid phone number' });
         }
         // Check if user already exists
         const existingUser = await index_1.prisma.user.findUnique({ where: { email: ownerEmail } });
@@ -39,7 +49,7 @@ const createBusiness = async (req, res) => {
                     name: businessName,
                     slug: businessSlug,
                     location: String(businessLocation).trim(),
-                    phone: businessPhone,
+                    phone: normalizedBusinessPhone,
                     slot_interval_minutes: slotIntervalMinutes || 30
                 }
             });

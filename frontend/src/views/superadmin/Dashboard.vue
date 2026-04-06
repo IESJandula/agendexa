@@ -7,6 +7,7 @@ const businesses = ref<any[]>([]);
 const loading = ref(true);
 
 const showAddModal = ref(false);
+const PHONE_REGEX = /^\+?[\d\s().-]+$/;
 const newBusiness = ref({
   name: '',
   slug: '',
@@ -42,12 +43,20 @@ onMounted(() => {
 
 const handleCreateBusiness = async () => {
   const token = localStorage.getItem('token');
+  const normalizedPhone = String(newBusiness.value.phone || '').trim();
+  const phoneDigits = normalizedPhone.replace(/\D/g, '');
+
+  if (!PHONE_REGEX.test(normalizedPhone) || phoneDigits.length < 7 || phoneDigits.length > 15) {
+    alert('El teléfono no es válido. Usa solo números y símbolos como +, espacios, paréntesis o guiones.');
+    return;
+  }
+
   try {
     const payload = {
       businessName: newBusiness.value.name,
       businessSlug: newBusiness.value.slug,
       businessLocation: newBusiness.value.location,
-      businessPhone: newBusiness.value.phone,
+      businessPhone: normalizedPhone,
       slotIntervalMinutes: newBusiness.value.settings.slot_interval_minutes,
       ownerName: newBusiness.value.ownerName,
       ownerEmail: newBusiness.value.ownerEmail,
@@ -91,7 +100,7 @@ const openOwnerView = (business: any) => {
 </script>
 
 <template>
-  <div class="flex-1 w-full max-w-[1400px] mx-auto p-4 md:p-10 pt-8 min-h-screen relative overflow-hidden">
+  <div class="flex-1 w-full max-w-none p-2 md:p-4 pt-5 min-h-screen relative overflow-hidden">
     
     <!-- Ultra luxe background elements -->
     <div class="absolute inset-0 z-0 opacity-[0.02] pointer-events-none" style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.85%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22/%3E%3C/svg%3E');"></div>
@@ -175,7 +184,7 @@ const openOwnerView = (business: any) => {
               <input v-model="newBusiness.location" type="text" placeholder="UBICACION (CIUDAD/ZONA)" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
             </div>
             <div>
-              <input v-model="newBusiness.phone" type="text" placeholder="TELÉFONO DE CONTACTO" class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
+              <input v-model="newBusiness.phone" type="tel" placeholder="TELÉFONO DE CONTACTO" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
             </div>
             <div>
               <input v-model.number="newBusiness.settings.slot_interval_minutes" type="number" placeholder="INTERVALO DE AGENDA" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />

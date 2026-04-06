@@ -4,6 +4,14 @@ import { AuthRequest } from '../middlewares/auth.middleware';
 import { randomBytes } from 'crypto';
 import { sendAppointmentConfirmationEmail } from '../services/booking-mail.service';
 
+const PHONE_REGEX = /^\+?[\d\s().-]+$/;
+
+const isValidPhone = (phone: string) => {
+    const normalized = String(phone).trim();
+    const digits = normalized.replace(/\D/g, '');
+    return PHONE_REGEX.test(normalized) && digits.length >= 7 && digits.length <= 15;
+};
+
 type TimeRange = {
     startMinutes: number;
     endMinutes: number;
@@ -378,6 +386,11 @@ export const bookAppointment = async (req: AuthRequest, res: Response) => {
         const { slug } = req.params;
         const { serviceId, staffId, startDatetimeUtc, clientName, clientEmail, clientPhone } = req.body;
 
+        const normalizedClientPhone = String(clientPhone || '').trim();
+        if (normalizedClientPhone && !isValidPhone(normalizedClientPhone)) {
+            return res.status(400).json({ error: 'Invalid phone number' });
+        }
+
         if (!req.user) {
             return res.status(401).json({ error: 'Debes iniciar sesion para reservar una cita' });
         }
@@ -455,7 +468,7 @@ export const bookAppointment = async (req: AuthRequest, res: Response) => {
                     where: { id: clientUser.id },
                     data: {
                         name: clientName.trim(),
-                        ...(clientPhone ? { phone: String(clientPhone).trim() } : {})
+                        ...(normalizedClientPhone ? { phone: normalizedClientPhone } : {})
                     }
                 });
             }

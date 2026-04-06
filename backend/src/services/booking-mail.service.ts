@@ -1,6 +1,7 @@
 import { sendMail } from './mailer.service';
 
 const API_BASE_URL = process.env.API_BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
+const EMAIL_FONT_STACK = "'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
 
 const formatDateTime = (value: Date) => {
     return value.toLocaleString('es-ES', {
@@ -40,7 +41,7 @@ export const sendAppointmentConfirmationEmail = async (params: {
     ].join('\n');
 
     const html = `
-        <div style="font-family: Arial, sans-serif; line-height:1.5; color:#111; max-width:620px; margin:auto;">
+        <div style="font-family:${EMAIL_FONT_STACK}; line-height:1.5; color:#111; max-width:620px; margin:auto;">
             <h2>Confirma tu cita</h2>
             <p>Hola <strong>${clientName}</strong>,</p>
             <p>Hemos recibido tu solicitud de cita para <strong>${serviceName}</strong> con <strong>${staffName}</strong>.</p>
@@ -81,7 +82,7 @@ export const sendAppointmentReminderEmail = async (params: {
     ].join('\n');
 
     const html = `
-        <div style="font-family: Arial, sans-serif; line-height:1.5; color:#111; max-width:620px; margin:auto;">
+        <div style="font-family:${EMAIL_FONT_STACK}; line-height:1.5; color:#111; max-width:620px; margin:auto;">
             <h2>Recordatorio de cita</h2>
             <p>Hola <strong>${clientName}</strong>,</p>
             <p>Te recordamos que tu cita en <strong>${businessName}</strong> es en menos de 24 horas.</p>

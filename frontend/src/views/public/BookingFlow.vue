@@ -35,6 +35,8 @@ const booking = ref({
   clientPhone: ''
 });
 
+const PHONE_REGEX = /^\+?[\d\s().-]+$/;
+
 onMounted(async () => {
   const token = localStorage.getItem('token');
   const userStr = localStorage.getItem('user');
@@ -135,6 +137,13 @@ const submitBooking = async () => {
     return;
   }
 
+  const normalizedPhone = booking.value.clientPhone.trim();
+  const phoneDigits = normalizedPhone.replace(/\D/g, '');
+  if (normalizedPhone && (!PHONE_REGEX.test(normalizedPhone) || phoneDigits.length < 7 || phoneDigits.length > 15)) {
+    alert('El teléfono no es válido. Usa solo números y símbolos como +, espacios, paréntesis o guiones.');
+    return;
+  }
+
   try {
     trackEvent('attempt_booking', { service_id: booking.value.serviceId });
     const res = await fetch(`http://localhost:3000/public/${slug}/book`, {
@@ -193,13 +202,13 @@ const cancelBookingFlow = () => {
 </script>
 
 <template>
-  <div class="flex-1 w-full flex flex-col items-center justify-center p-4 relative overflow-hidden min-h-screen">
+  <div class="flex-1 w-full flex flex-col items-center justify-center p-2 sm:p-3 relative overflow-hidden min-h-screen">
     
     <!-- Ultra luxe background elements -->
     <div class="absolute inset-0 z-0 opacity-[0.02] pointer-events-none" style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.85%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22/%3E%3C/svg%3E');"></div>
     <div class="absolute top-0 right-0 w-[500px] h-[800px] bg-gradient-to-bl from-primary/10 to-transparent blur-[100px] pointer-events-none"></div>
 
-    <div class="w-full max-w-xl glass p-8 sm:p-12 relative z-10 flex flex-col min-h-[600px] transition-all duration-700 animate-fade-in-up border-t border-t-border border-l border-l-border rounded-xl">
+    <div class="w-full max-w-none glass p-6 sm:p-8 relative z-10 flex flex-col min-h-[600px] transition-all duration-700 animate-fade-in-up border-t border-t-border border-l border-l-border rounded-xl">
       
       <!-- Stepper Header -->
       <div class="mb-12 text-center">

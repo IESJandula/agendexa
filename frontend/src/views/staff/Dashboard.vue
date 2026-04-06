@@ -380,7 +380,7 @@ const formatDate = (dateStr: string) => {
 <template>
   <div class="min-h-screen bg-background text-text font-sans flex flex-col relative overflow-hidden">
     <header class="border-b border-border bg-surface/70 backdrop-blur-md relative z-10">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="w-full px-2 sm:px-3 lg:px-4 h-16 flex items-center justify-between">
         <div class="flex items-center gap-4">
           <h1 class="font-display font-semibold text-xl tracking-wide">PORTAL DEL PERSONAL</h1>
           <span class="w-px h-6 bg-border"></span>
@@ -392,7 +392,7 @@ const formatDate = (dateStr: string) => {
       </div>
     </header>
 
-    <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 w-full relative z-10" v-if="staffProfile">
+    <main class="flex-1 px-2 sm:px-3 lg:px-4 py-5 sm:py-6 w-full relative z-10" v-if="staffProfile">
       <div class="border-b border-border mb-8">
         <nav class="-mb-px flex space-x-8 overflow-x-auto">
           <button
@@ -505,7 +505,7 @@ const formatDate = (dateStr: string) => {
       </div>
 
       <div v-if="activeTab === 'schedule'" class="animate-fade-in-up">
-        <div class="bg-surface border border-border rounded-xl shadow-xl p-8 max-w-5xl mx-auto backdrop-blur-sm">
+        <div class="bg-surface border border-border rounded-xl shadow-xl p-8 w-full backdrop-blur-sm">
           <div class="mb-6">
             <h2 class="font-display text-2xl font-semibold mb-2">Disponibilidad semanal</h2>
             <p class="text-textMuted text-sm">Puedes definir jornada continua o turno partido con dos tramos por dia.</p>

@@ -51,7 +51,7 @@ const handleSearch = () => {
 </script>
 
 <template>
-  <div class="flex flex-col items-center justify-center flex-1 px-4 sm:px-8 pt-8 pb-10 sm:pb-14 relative overflow-hidden w-full min-h-screen">
+  <div class="flex flex-col items-center justify-center flex-1 px-2 sm:px-4 pt-8 pb-10 sm:pb-14 relative overflow-hidden w-full min-h-screen">
     
     <!-- Background Texture & Grain -->
     <div class="absolute inset-0 z-0 opacity-[0.02] pointer-events-none" style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E');"></div>
@@ -60,7 +60,7 @@ const handleSearch = () => {
     <div class="absolute top-0 right-1/4 w-[800px] h-[500px] bg-primary rounded-[100%] blur-[160px] opacity-[0.06] pointer-events-none transform -translate-y-1/2 rotate-12"></div>
     <div class="absolute bottom-0 left-1/4 w-[600px] h-[600px] bg-brandDark rounded-[100%] blur-[180px] opacity-[0.04] pointer-events-none transform translate-y-1/3 -rotate-12"></div>
 
-    <div class="z-10 text-center max-w-5xl flex flex-col items-center w-full mt-16 sm:mt-24">
+    <div class="z-10 text-center w-full flex flex-col items-center mt-16 sm:mt-24">
       
       <div class="inline-block mb-8 animate-fade-in-up">
         <span class="px-4 py-1 border border-primary/40 text-brandDark bg-surface/80 text-xs tracking-[0.3em] uppercase backdrop-blur-md rounded-full">
@@ -90,17 +90,17 @@ const handleSearch = () => {
       </div>
       
       <!-- Search Engine Box -->
-      <div class="mt-14 sm:mt-20 mb-8 sm:mb-12 w-full max-w-2xl px-1 sm:px-4 animate-fade-in-up delay-400 relative">
-        <label class="block text-brandDark uppercase tracking-widest text-[10px] mb-4 font-semibold text-center">Encuentra tu centro</label>
+      <div class="mt-14 sm:mt-20 mb-8 sm:mb-12 w-full max-w-none px-1 sm:px-2 animate-fade-in-up delay-400 relative">
+        <label class="block text-brandDark uppercase tracking-[0.18em] text-sm sm:text-base mb-5 font-semibold text-center">Encuentra tu centro por nombre y ubicación</label>
 
-        <div class="flex items-center justify-center gap-2 mb-3">
+        <div class="flex items-center justify-center gap-3 mb-4">
           <button
             type="button"
             @click="searchBy = 'name'; handleSearch()"
             :class="searchBy === 'name'
               ? 'bg-brandDark text-surface border-brandDark'
               : 'bg-surface text-brandDark border-border hover:border-brandDark/40'"
-            class="px-3 py-1.5 rounded-full border text-xs tracking-wide transition-colors"
+            class="px-5 py-2.5 rounded-full border text-sm tracking-wide transition-colors"
           >
             Nombre
           </button>
@@ -110,7 +110,7 @@ const handleSearch = () => {
             :class="searchBy === 'location'
               ? 'bg-brandDark text-surface border-brandDark'
               : 'bg-surface text-brandDark border-border hover:border-brandDark/40'"
-            class="px-3 py-1.5 rounded-full border text-xs tracking-wide transition-colors"
+            class="px-5 py-2.5 rounded-full border text-sm tracking-wide transition-colors"
           >
             Ubicacion
           </button>
@@ -122,7 +122,7 @@ const handleSearch = () => {
             @input="handleSearch"
             type="search" 
             :placeholder="searchPlaceholder"
-            class="w-full bg-surface border border-border text-text px-6 py-5 rounded-lg outline-none focus:border-primary/60 focus:bg-surface transition-all font-light tracking-wide text-lg"
+            class="w-full bg-surface border border-border text-text px-6 py-5 sm:py-6 rounded-lg outline-none focus:border-primary/60 focus:bg-surface transition-all font-light tracking-wide text-lg sm:text-xl text-center placeholder:text-center"
           >
           <div v-if="isSearching" class="absolute right-6 top-1/2 -translate-y-1/2 w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
         </div>
@@ -151,10 +151,10 @@ const handleSearch = () => {
 
     </div>
 
-    <footer class="z-10 w-full max-w-6xl mt-6 sm:mt-8">
+    <footer class="z-10 w-full mt-6 sm:mt-8">
       <div class="h-px w-full bg-gradient-to-r from-transparent via-border to-transparent mb-5"></div>
-      <div class="glass px-5 sm:px-8 py-5 rounded-xl border border-border/70 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div class="flex items-center gap-3">
+      <div class="glass px-5 sm:px-8 py-5 rounded-xl border border-border/70 flex flex-col items-center justify-center gap-3 text-center">
+        <div class="flex items-center justify-center gap-3">
           <span class="px-3 py-1 rounded-full bg-primary/15 text-brandDark border border-primary/35 text-[10px] tracking-[0.2em] uppercase font-semibold">Agendexa</span>
           <p class="text-[11px] sm:text-xs tracking-[0.18em] uppercase text-textMuted">Reservas simples, clientes felices</p>
         </div>
