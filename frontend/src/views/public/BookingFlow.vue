@@ -167,6 +167,29 @@ const formatPrice = (value: number | string) => {
 
 const selectedServiceName = computed(() => services.value.find(s => s.id === booking.value.serviceId)?.name || '');
 const selectedStaffName = computed(() => staff.value.find(s => s.id === booking.value.staffId)?.user.name || '');
+
+const hasBookingProgress = computed(() => {
+  return Boolean(
+    booking.value.serviceId ||
+    booking.value.staffId ||
+    booking.value.startDatetimeUtc ||
+    targetDate.value
+  );
+});
+
+const cancelBookingFlow = () => {
+  if (hasBookingProgress.value) {
+    const confirmed = window.confirm('Si cancelas, perderas los datos seleccionados de esta reserva. ¿Deseas continuar?');
+    if (!confirmed) return;
+  }
+
+  trackEvent('cancel_booking_flow', {
+    step: step.value,
+    had_progress: hasBookingProgress.value
+  });
+
+  router.push('/client/dashboard');
+};
 </script>
 
 <template>
@@ -179,19 +202,27 @@ const selectedStaffName = computed(() => staff.value.find(s => s.id === booking.
     <div class="w-full max-w-xl glass p-8 sm:p-12 relative z-10 flex flex-col min-h-[600px] transition-all duration-700 animate-fade-in-up border-t border-t-border border-l border-l-border rounded-xl">
       
       <!-- Stepper Header -->
-      <div class="mb-12 text-center relative">
-        <button v-if="step > 1 && step < 5" @click="step--" class="absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center text-textMuted hover:text-brandDark transition-colors">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M15 19l-7-7 7-7" /></svg>
-        </button>
-        
-        <h2 class="font-display font-medium text-2xl tracking-wide uppercase text-white mb-6">
-          <span v-if="step === 1">Selecciona servicio</span>
-          <span v-else-if="step === 2">Selecciona profesional</span>
-          <span v-else-if="step === 3">Disponibilidad</span>
-          <span v-else-if="step === 4">Tus datos</span>
-          <span v-else-if="step === 5" class="text-primary">Confirmado</span>
-        </h2>
-        
+      <div class="mb-12 text-center">
+        <div class="grid grid-cols-[3rem_1fr_auto] items-center gap-3 min-h-12 mb-6">
+          <button v-if="step > 1 && step < 5" @click="step--" class="w-12 h-12 flex items-center justify-center text-textMuted hover:text-brandDark transition-colors">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M15 19l-7-7 7-7" /></svg>
+          </button>
+          <div v-else class="w-12 h-12"></div>
+
+          <h2 class="font-display font-medium text-xl sm:text-2xl tracking-wide uppercase text-white text-center px-1 leading-tight">
+            <span v-if="step === 1">Selecciona servicio</span>
+            <span v-else-if="step === 2">Selecciona profesional</span>
+            <span v-else-if="step === 3">Disponibilidad</span>
+            <span v-else-if="step === 4">Tus datos</span>
+            <span v-else-if="step === 5" class="text-primary">Confirmado</span>
+          </h2>
+
+          <button v-if="step < 5" @click="cancelBookingFlow" class="px-3 py-2 text-[10px] uppercase tracking-widest border border-border text-textMuted hover:text-red-400 hover:border-red-500/40 transition-colors rounded-md whitespace-nowrap">
+            Cancelar
+          </button>
+          <div v-else class="h-9"></div>
+        </div>
+
         <div class="flex justify-center gap-1.5">
           <div v-for="i in 4" :key="i" :class="['h-[2px] transition-all duration-700 w-12', i === step ? 'bg-primary shadow-[0_0_10px_rgba(57,203,105,0.45)]' : i < step ? 'bg-primary/40' : 'bg-border']"></div>
         </div>

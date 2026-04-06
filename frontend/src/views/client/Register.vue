@@ -11,15 +11,25 @@ const phone = ref('');
 const password = ref('');
 const errorMsg = ref('');
 const loading = ref(false);
+const phoneRegex = /^\+?[\d\s().-]+$/;
 
 const handleRegister = async () => {
   loading.value = true;
   errorMsg.value = '';
+
+  const normalizedPhone = phone.value.trim();
+  const digitsOnly = normalizedPhone.replace(/\D/g, '');
+  if (!phoneRegex.test(normalizedPhone) || digitsOnly.length < 7 || digitsOnly.length > 15) {
+    errorMsg.value = 'El teléfono no es válido. Usa solo números y símbolos como +, espacios, paréntesis o guiones.';
+    loading.value = false;
+    return;
+  }
+
   try {
     const res = await fetch('http://localhost:3000/auth/register/client', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name.value, email: email.value, phone: phone.value, password: password.value })
+      body: JSON.stringify({ name: name.value, email: email.value, phone: normalizedPhone, password: password.value })
     });
     const data = await res.json();
     

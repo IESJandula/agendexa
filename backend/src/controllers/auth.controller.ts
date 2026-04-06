@@ -3,6 +3,8 @@ import { prisma } from '../index';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
+const PHONE_REGEX = /^\+?[\d\s().-]+$/;
+
 export const login = async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body;
@@ -74,8 +76,9 @@ export const registerClient = async (req: Request, res: Response) => {
 
         const normalizedEmail = String(email).trim().toLowerCase();
         const normalizedPhone = String(phone).trim();
+        const phoneDigits = normalizedPhone.replace(/\D/g, '');
 
-        if (normalizedPhone.length < 7) {
+        if (!PHONE_REGEX.test(normalizedPhone) || phoneDigits.length < 7 || phoneDigits.length > 15) {
             return res.status(400).json({ error: 'Invalid phone number' });
         }
 

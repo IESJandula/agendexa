@@ -7,6 +7,7 @@ exports.registerClient = exports.login = void 0;
 const index_1 = require("../index");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const PHONE_REGEX = /^\+?[\d\s().-]+$/;
 const login = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -70,7 +71,8 @@ const registerClient = async (req, res) => {
         }
         const normalizedEmail = String(email).trim().toLowerCase();
         const normalizedPhone = String(phone).trim();
-        if (normalizedPhone.length < 7) {
+        const phoneDigits = normalizedPhone.replace(/\D/g, '');
+        if (!PHONE_REGEX.test(normalizedPhone) || phoneDigits.length < 7 || phoneDigits.length > 15) {
             return res.status(400).json({ error: 'Invalid phone number' });
         }
         // Check if user already exists
