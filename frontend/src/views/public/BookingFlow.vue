@@ -241,7 +241,9 @@ const cancelBookingFlow = () => {
       <!-- Step 1: Services -->
       <transition name="fade" mode="out-in">
         <div v-if="step === 1" class="flex-1 flex flex-col gap-4">
-          <div v-if="services.length === 0" class="text-center font-light uppercase tracking-widest text-textMuted py-20 animate-pulse">Cargando catálogo...</div>
+          <div v-if="services.length === 0" class="text-center font-light uppercase tracking-widest text-textMuted py-20">
+            No hay catálogo disponible
+          </div>
           <button v-for="s in services" :key="s.id" @click="selectService(s.id, s.name, s.price)" class="w-full p-6 bg-surface border-b border-border hover:bg-surfaceHover hover:pl-8 transition-all duration-300 text-left flex justify-between items-center group cursor-pointer relative overflow-hidden rounded-lg">
             <div class="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <div class="relative z-10">
