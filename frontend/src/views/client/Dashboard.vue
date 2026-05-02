@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -78,7 +79,7 @@ const handleSearch = () => {
   isSearching.value = true;
   searchTimeout = setTimeout(async () => {
     try {
-      const res = await fetch(`http://localhost:3000/public/businesses/search?q=${encodeURIComponent(searchQuery.value)}&by=${searchBy.value}`);
+      const res = await fetch(`${API_BASE_URL}/public/businesses/search?q=${encodeURIComponent(searchQuery.value)}&by=${searchBy.value}`);
       if (res.ok) {
         searchResults.value = await res.json();
       }
@@ -109,7 +110,7 @@ const fetchAppointments = async () => {
 
   loading.value = true;
   try {
-    const res = await fetch('http://localhost:3000/appointments', {
+    const res = await fetch(`${API_BASE_URL}/appointments`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (res.ok) {
@@ -148,7 +149,7 @@ const cancelAppointment = async (id: string) => {
   
   const token = localStorage.getItem('token');
   try {
-    const res = await fetch(`http://localhost:3000/appointments/${id}/status`, {
+    const res = await fetch(`${API_BASE_URL}/appointments/${id}/status`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({ status: 'CANCELLED' })
@@ -382,3 +383,4 @@ const translateStatus = (status: string) => {
     </main>
   </div>
 </template>
+

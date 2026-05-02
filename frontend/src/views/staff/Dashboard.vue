@@ -1,4 +1,5 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import CalendarPicker from '../../components/CalendarPicker.vue';
@@ -112,7 +113,7 @@ const handleAgendaDateSelect = (date: string) => {
 };
 
 const fetchProfile = async () => {
-  const res = await fetch('http://localhost:3000/staff/me', {
+  const res = await fetch(`${API_BASE_URL}/staff/me`, {
     headers: { Authorization: `Bearer ${token}` }
   });
 
@@ -133,7 +134,7 @@ const fetchProfile = async () => {
 };
 
 const fetchAppointments = async () => {
-  const res = await fetch('http://localhost:3000/appointments', {
+  const res = await fetch(`${API_BASE_URL}/appointments`, {
     headers: { Authorization: `Bearer ${token}` }
   });
 
@@ -221,7 +222,7 @@ const saveSchedule = async () => {
   saveMsg.value = 'Guardando...';
 
   try {
-    const res = await fetch(`http://localhost:3000/staff/${staffProfile.value.id}/schedule`, {
+    const res = await fetch(`${API_BASE_URL}/staff/${staffProfile.value.id}/schedule`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -248,7 +249,7 @@ const saveSchedule = async () => {
 
 const updateAppointmentStatus = async (id: string, status: string) => {
   try {
-    await fetch(`http://localhost:3000/appointments/${id}/status`, {
+    await fetch(`${API_BASE_URL}/appointments/${id}/status`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -265,7 +266,7 @@ const updateAppointmentStatus = async (id: string, status: string) => {
 const handleMonthChange = async (year: number, month: number) => {
   if (!newBooking.value.serviceId || !staffProfile.value?.id || !businessSlug.value) return;
   try {
-    const res = await fetch(`http://localhost:3000/public/${businessSlug.value}/availability/month?serviceId=${newBooking.value.serviceId}&staffId=${staffProfile.value.id}&year=${year}&month=${month}`);
+    const res = await fetch(`${API_BASE_URL}/public/${businessSlug.value}/availability/month?serviceId=${newBooking.value.serviceId}&staffId=${staffProfile.value.id}&year=${year}&month=${month}`);
     if (res.ok) {
       monthlyAvailability.value = await res.json();
     } else {
@@ -283,7 +284,7 @@ const handleDateChange = async () => {
   }
 
   try {
-    const res = await fetch(`http://localhost:3000/public/${businessSlug.value}/availability?serviceId=${newBooking.value.serviceId}&staffId=${staffProfile.value.id}&date=${newBooking.value.date}`);
+    const res = await fetch(`${API_BASE_URL}/public/${businessSlug.value}/availability?serviceId=${newBooking.value.serviceId}&staffId=${staffProfile.value.id}&date=${newBooking.value.date}`);
     if (res.ok) {
       availableSlots.value = await res.json();
     } else {
@@ -333,7 +334,7 @@ const handleSaveBooking = async () => {
       startDatetimeUtc: newBooking.value.time
     };
 
-    const res = await fetch(`http://localhost:3000/public/${businessSlug.value}/book`, {
+    const res = await fetch(`${API_BASE_URL}/public/${businessSlug.value}/book`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -619,4 +620,5 @@ const formatDate = (dateStr: string) => {
     </main>
   </div>
 </template>
+
 

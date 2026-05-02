@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 import { computed, ref } from 'vue';
 
 const searchQuery = ref('');
@@ -37,7 +38,7 @@ const handleSearch = () => {
   isSearching.value = true;
   searchTimeout = setTimeout(async () => {
     try {
-      const res = await fetch(`http://localhost:3000/public/businesses/search?q=${encodeURIComponent(searchQuery.value)}&by=${searchBy.value}`);
+      const res = await fetch(`${API_BASE_URL}/public/businesses/search?q=${encodeURIComponent(searchQuery.value)}&by=${searchBy.value}`);
       if (res.ok) {
         searchResults.value = await res.json();
       }
@@ -163,3 +164,4 @@ const handleSearch = () => {
     </footer>
   </div>
 </template>
+

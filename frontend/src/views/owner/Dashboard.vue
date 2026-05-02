@@ -1,4 +1,5 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 import { ref, onMounted, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import CalendarPicker from '../../components/CalendarPicker.vue';
@@ -157,9 +158,9 @@ const fetchDashboardData = async () => {
     const headers = getAuthHeaders(token);
     
     const [appRes, srvRes, stfRes] = await Promise.all([
-      fetch('http://localhost:3000/appointments', { headers }),
-      fetch('http://localhost:3000/services', { headers }),
-      fetch('http://localhost:3000/staff', { headers })
+      fetch(`${API_BASE_URL}/appointments`, { headers }),
+      fetch(`${API_BASE_URL}/services`, { headers }),
+      fetch(`${API_BASE_URL}/staff`, { headers })
     ]);
     
     if (appRes.ok) {
@@ -183,7 +184,7 @@ const updateAppointmentStatus = async (id: string, status: string) => {
   const token = localStorage.getItem('token');
   if (!token) return;
   try {
-    await fetch(`http://localhost:3000/appointments/${id}/status`, {
+    await fetch(`${API_BASE_URL}/appointments/${id}/status`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', ...getAuthHeaders(token) },
       body: JSON.stringify({ status })
@@ -242,8 +243,8 @@ const handleSaveService = async () => {
   if (!token) return;
   try {
     const url = editingServiceId.value 
-      ? `http://localhost:3000/services/${editingServiceId.value}` 
-      : 'http://localhost:3000/services';
+      ? `${API_BASE_URL}/services/${editingServiceId.value}` 
+      : `${API_BASE_URL}/services`;
     const method = editingServiceId.value ? 'PATCH' : 'POST';
 
     const res = await fetch(url, {
@@ -284,8 +285,8 @@ const handleSaveStaff = async () => {
   try {
     const isEdit = !!editingStaffId.value;
     const url = isEdit 
-      ? `http://localhost:3000/staff/${editingStaffId.value}` 
-      : 'http://localhost:3000/staff';
+      ? `${API_BASE_URL}/staff/${editingStaffId.value}` 
+      : `${API_BASE_URL}/staff`;
     const method = isEdit ? 'PATCH' : 'POST';
 
     // Only send password if editing and it's filled, or if creating
@@ -364,7 +365,7 @@ const saveStaffSchedule = async () => {
   scheduleSaveMsg.value = 'Guardando...';
 
   try {
-    const res = await fetch(`http://localhost:3000/staff/${scheduleTargetStaffId.value}/schedule`, {
+    const res = await fetch(`${API_BASE_URL}/staff/${scheduleTargetStaffId.value}/schedule`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', ...getAuthHeaders(token) },
       body: JSON.stringify({ schedules: payload })
@@ -400,7 +401,7 @@ const handleDateOrStaffChange = async () => {
   }
   
   try {
-    const res = await fetch(`http://localhost:3000/public/${businessSlug.value}/availability?serviceId=${newBooking.value.serviceId}&staffId=${newBooking.value.staffId}&date=${newBooking.value.date}`);
+    const res = await fetch(`${API_BASE_URL}/public/${businessSlug.value}/availability?serviceId=${newBooking.value.serviceId}&staffId=${newBooking.value.staffId}&date=${newBooking.value.date}`);
     if (res.ok) {
       availableSlots.value = await res.json();
     } else {
@@ -415,7 +416,7 @@ const handleDateOrStaffChange = async () => {
 const handleMonthChange = async (year: number, month: number) => {
   if (!newBooking.value.serviceId || !newBooking.value.staffId) return;
   try {
-    const res = await fetch(`http://localhost:3000/public/${businessSlug.value}/availability/month?serviceId=${newBooking.value.serviceId}&staffId=${newBooking.value.staffId}&year=${year}&month=${month}`);
+    const res = await fetch(`${API_BASE_URL}/public/${businessSlug.value}/availability/month?serviceId=${newBooking.value.serviceId}&staffId=${newBooking.value.staffId}&year=${year}&month=${month}`);
     if (res.ok) {
       monthlyAvailability.value = await res.json();
     } else {
@@ -469,7 +470,7 @@ const handleSaveBooking = async () => {
       startDatetimeUtc: newBooking.value.time
     };
 
-    const res = await fetch(`http://localhost:3000/public/${businessSlug.value}/book`, {
+    const res = await fetch(`${API_BASE_URL}/public/${businessSlug.value}/book`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -944,4 +945,5 @@ const formatPrice = (value: number | string) => {
 
   </div>
 </template>
+
 

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -24,7 +25,7 @@ const fetchBusinesses = async () => {
   if (!token) return router.push('/superadmin/login');
   
   try {
-    const res = await fetch('http://localhost:3000/admin/businesses', {
+    const res = await fetch(`${API_BASE_URL}/admin/businesses`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (res.ok) {
@@ -63,7 +64,7 @@ const handleCreateBusiness = async () => {
       ownerPassword: newBusiness.value.ownerPassword
     };
 
-    const res = await fetch('http://localhost:3000/admin/businesses', {
+    const res = await fetch(`${API_BASE_URL}/admin/businesses`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify(payload)
@@ -215,3 +216,4 @@ const openOwnerView = (business: any) => {
 
   </div>
 </template>
+
