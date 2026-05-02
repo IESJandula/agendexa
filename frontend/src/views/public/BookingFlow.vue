@@ -282,7 +282,7 @@ const cancelBookingFlow = () => {
               <p class="font-light tracking-widest text-sm uppercase">Sin disponibilidad</p>
             </div>
 
-            <div v-else class="grid grid-cols-3 gap-3 overflow-y-auto pr-2 pb-4 max-h-48 custom-scrollbar">
+            <div v-else class="grid grid-cols-2 sm:grid-cols-3 gap-3 overflow-y-auto pr-2 pb-4 max-h-48 custom-scrollbar">
               <button v-for="slot in availableSlots" :key="slot" @click="selectSlot(slot)" class="py-3 text-center border border-border bg-surface hover:bg-primary/10 hover:border-primary/50 transition-all duration-300 text-sm font-light tracking-widest rounded-md">
                 {{ formatTime(slot) }}
               </button>

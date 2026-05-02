@@ -395,22 +395,22 @@ const formatDate = (dateStr: string) => {
 
     <main class="flex-1 px-2 sm:px-3 lg:px-4 py-5 sm:py-6 w-full relative z-10" v-if="staffProfile">
       <div class="border-b border-border mb-8">
-        <nav class="-mb-px flex space-x-8 overflow-x-auto">
+        <nav class="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <button
             @click="activeTab = 'appointments'"
-            :class="[activeTab === 'appointments' ? 'border-primary text-primary' : 'border-transparent text-textMuted hover:text-brandDark hover:border-primary/30', 'whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm tracking-wide uppercase transition-colors']"
+            :class="[activeTab === 'appointments' ? 'border-primary text-primary bg-primary/5' : 'border-border text-textMuted hover:text-brandDark hover:border-primary/30', 'whitespace-nowrap rounded-md border px-4 py-3 text-left font-medium text-sm tracking-wide uppercase transition-colors']"
           >
             Agenda
           </button>
           <button
             @click="activeTab = 'history'"
-            :class="[activeTab === 'history' ? 'border-primary text-primary' : 'border-transparent text-textMuted hover:text-brandDark hover:border-primary/30', 'whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm tracking-wide uppercase transition-colors']"
+            :class="[activeTab === 'history' ? 'border-primary text-primary bg-primary/5' : 'border-border text-textMuted hover:text-brandDark hover:border-primary/30', 'whitespace-nowrap rounded-md border px-4 py-3 text-left font-medium text-sm tracking-wide uppercase transition-colors']"
           >
             Historial
           </button>
           <button
             @click="activeTab = 'schedule'"
-            :class="[activeTab === 'schedule' ? 'border-primary text-primary' : 'border-transparent text-textMuted hover:text-brandDark hover:border-primary/30', 'whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm tracking-wide uppercase transition-colors']"
+            :class="[activeTab === 'schedule' ? 'border-primary text-primary bg-primary/5' : 'border-border text-textMuted hover:text-brandDark hover:border-primary/30', 'whitespace-nowrap rounded-md border px-4 py-3 text-left font-medium text-sm tracking-wide uppercase transition-colors']"
           >
             Horario laboral
           </button>
@@ -418,7 +418,7 @@ const formatDate = (dateStr: string) => {
       </div>
 
       <div v-if="activeTab === 'appointments'" class="animate-fade-in-up">
-        <header class="flex justify-between items-end border-b border-border pb-6 mb-8">
+        <header class="flex flex-col sm:flex-row sm:justify-between sm:items-end border-b border-border pb-6 mb-8 gap-4">
           <div>
             <h3 class="font-display text-2xl text-white">Agenda por dia</h3>
             <p class="text-textMuted text-xs uppercase tracking-widest mt-2 font-light">Solo aparecen tus citas asignadas</p>
@@ -592,7 +592,7 @@ const formatDate = (dateStr: string) => {
                   <p class="font-light tracking-widest text-[10px] uppercase">Sin disponibilidad</p>
                 </div>
 
-                <div v-else class="grid grid-cols-3 gap-3 max-h-48 overflow-y-auto custom-scrollbar pr-2">
+                <div v-else class="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-48 overflow-y-auto custom-scrollbar pr-2">
                   <button
                     v-for="slot in availableSlots"
                     :key="slot"

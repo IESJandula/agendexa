@@ -28,6 +28,13 @@ body {
   background-image:
     radial-gradient(circle at 15% 50%, rgba(57, 203, 105, 0.08), transparent 25%),
     radial-gradient(circle at 85% 30%, rgba(1, 83, 81, 0.06), transparent 30%);
+  overflow-x: hidden;
+}
+
+html,
+#app {
+  min-height: 100%;
+  overflow-x: hidden;
 }
 
 h1,
@@ -48,6 +55,23 @@ h6 {
   border: 1px solid rgba(1, 83, 81, 0.15);
   box-shadow: 0 10px 26px -16px rgba(0, 0, 0, 0.22);
   border-radius: 12px;
+}
+
+.app-topbar {
+  background: rgba(246, 247, 246, 0.985);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(1, 83, 81, 0.12);
+  box-shadow: 0 10px 30px -24px rgba(6, 6, 6, 0.38);
+}
+
+.app-topbar::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(1, 83, 81, 0.18), transparent);
+  pointer-events: none;
 }
 
 .input-premium {

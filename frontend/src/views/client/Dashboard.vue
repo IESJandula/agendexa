@@ -195,7 +195,7 @@ const translateStatus = (status: string) => {
         <div class="h-[1px] w-12 bg-primary mt-4"></div>
       </div>
 
-      <nav class="flex md:flex-col gap-2 overflow-x-auto pb-4 md:pb-0">
+      <nav class="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-1 gap-2 pb-4 md:pb-0">
         <button 
           @click="activeTab = 'upcoming'" 
           :class="['px-6 py-4 text-left border-l-2 transition-all duration-500 text-xs font-semibold tracking-widest uppercase', activeTab === 'upcoming' ? 'border-primary text-primary bg-primary/5' : 'border-transparent text-textMuted hover:text-brandDark hover:border-primary/30']">
@@ -213,7 +213,7 @@ const translateStatus = (status: string) => {
         </button>
       </nav>
 
-      <div class="mt-auto pt-16 flex flex-col gap-3">
+      <div class="mt-6 md:mt-auto md:pt-16 flex flex-col gap-3">
         <button @click="activeTab = 'discover'" class="w-full text-center px-6 py-4 bg-primary text-black font-semibold text-xs tracking-widest uppercase hover:bg-primaryHover transition-all">
           Reservar cita
         </button>
