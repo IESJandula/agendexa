@@ -88,34 +88,33 @@ const selectDate = (day: any) => {
 </script>
 
 <template>
-  <div class="w-full bg-surface border border-border rounded-lg relative overflow-hidden group">
-    <!-- Luxe background effects -->
-    <div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none"></div>
+  <div class="w-full max-w-88 sm:max-w-sm md:max-w-md mx-auto bg-surface border border-border/80 rounded-2xl relative overflow-hidden group shadow-sm">
+    <div class="absolute inset-0 bg-linear-to-br from-primary/8 via-transparent to-brandDark/5 pointer-events-none"></div>
 
     <!-- Header -->
-    <div class="flex items-center justify-between p-4 border-b border-border">
-      <button type="button" @click="changeMonth(-1)" class="p-2 text-textMuted hover:text-brandDark transition-colors" :class="{'opacity-50 cursor-not-allowed': currentYear === today.getFullYear() && currentMonth === today.getMonth()}">
-        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M15 19l-7-7 7-7" /></svg>
+    <div class="flex items-center justify-between gap-2 px-3 py-3 border-b border-border/70 bg-white/60 backdrop-blur-sm">
+      <button type="button" @click="changeMonth(-1)" class="p-1.5 rounded-md text-textMuted hover:text-brandDark hover:bg-primary/10 transition-colors" :class="{'opacity-40 cursor-not-allowed': currentYear === today.getFullYear() && currentMonth === today.getMonth()}">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M15 19l-7-7 7-7" /></svg>
       </button>
       
-      <div class="font-display font-medium text-lg uppercase tracking-widest text-text">
+      <div class="min-w-0 text-center font-display font-medium text-sm sm:text-base uppercase tracking-[0.22em] text-text truncate">
         {{ currentMonthName }} <span class="text-primary font-light">{{ currentYear }}</span>
       </div>
 
-      <button type="button" @click="changeMonth(1)" class="p-2 text-textMuted hover:text-brandDark transition-colors">
-        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M9 5l7 7-7 7" /></svg>
+      <button type="button" @click="changeMonth(1)" class="p-1.5 rounded-md text-textMuted hover:text-brandDark hover:bg-primary/10 transition-colors">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M9 5l7 7-7 7" /></svg>
       </button>
     </div>
 
     <!-- Days Header -->
-    <div class="grid grid-cols-7 gap-1 p-4 pb-2">
-      <div v-for="dName in dayNames" :key="dName" class="text-center text-[10px] tracking-widest uppercase text-textMuted font-medium">
+    <div class="grid grid-cols-7 gap-1 px-3 pt-3 pb-2">
+      <div v-for="dName in dayNames" :key="dName" class="text-center text-[9px] sm:text-[10px] tracking-[0.22em] uppercase text-textMuted font-medium">
         {{ dName }}
       </div>
     </div>
 
     <!-- Calendar Grid -->
-    <div class="grid grid-cols-7 gap-2 px-4 pb-6">
+    <div class="grid grid-cols-7 gap-1.5 px-3 pb-3 sm:pb-4">
       <div v-for="(day, index) in calendarDays" :key="index" class="relative group/day">
         <button 
           v-if="day"
@@ -123,13 +122,13 @@ const selectDate = (day: any) => {
           @click="selectDate(day)"
           :disabled="!day.isAvailable"
           :class="[
-            'w-full aspect-square flex items-center justify-center text-sm transition-all duration-300 relative border z-10',
+            'w-full aspect-square flex items-center justify-center text-[11px] sm:text-xs transition-all duration-300 relative border z-10 rounded-md',
             day.isoDate === selectedDate 
-              ? 'bg-primary text-black border-primary shadow-[0_0_12px_rgba(57,203,105,0.35)] font-medium' 
+              ? 'bg-primary text-black border-primary shadow-[0_0_10px_rgba(57,203,105,0.3)] font-medium' 
               : day.isAvailable 
-                ? 'bg-primary/5 text-text border-primary/20 hover:bg-primary/15 hover:border-primary/50 cursor-pointer' 
+                ? 'bg-primary/5 text-text border-primary/15 hover:bg-primary/12 hover:border-primary/40 cursor-pointer' 
                 : day.isPast
-                  ? 'bg-transparent text-textMuted/50 border-transparent cursor-not-allowed'
+                  ? 'bg-transparent text-textMuted/45 border-transparent cursor-not-allowed'
                   : 'bg-red-500/5 text-textMuted border-red-500/20 cursor-not-allowed hidden-diagonal'
           ]"
         >
@@ -141,7 +140,7 @@ const selectDate = (day: any) => {
           </div>
           {{ day.day }}
         </button>
-        <div v-else class="w-full aspect-square text-transparent"></div>
+        <div v-else class="w-full aspect-square rounded-md text-transparent"></div>
       </div>
     </div>
 

@@ -207,9 +207,9 @@ const cancelBookingFlow = () => {
     
     <!-- Ultra luxe background elements -->
     <div class="absolute inset-0 z-0 opacity-[0.02] pointer-events-none" style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.85%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22/%3E%3C/svg%3E');"></div>
-    <div class="absolute top-0 right-0 w-[500px] h-[800px] bg-gradient-to-bl from-primary/10 to-transparent blur-[100px] pointer-events-none"></div>
+    <div class="absolute top-0 right-0 w-125 h-200 bg-linear-to-bl from-primary/10 to-transparent blur-[100px] pointer-events-none"></div>
 
-    <div class="w-full max-w-none glass p-6 sm:p-8 relative z-10 flex flex-col min-h-[600px] transition-all duration-700 animate-fade-in-up border-t border-t-border border-l border-l-border rounded-xl">
+    <div class="w-full max-w-none glass p-6 sm:p-8 relative z-10 flex flex-col min-h-150 transition-all duration-700 animate-fade-in-up border-t border-t-border border-l border-l-border rounded-xl">
       
       <!-- Stepper Header -->
       <div class="mb-12 text-center">
@@ -234,7 +234,7 @@ const cancelBookingFlow = () => {
         </div>
 
         <div class="flex justify-center gap-1.5">
-          <div v-for="i in 4" :key="i" :class="['h-[2px] transition-all duration-700 w-12', i === step ? 'bg-primary shadow-[0_0_10px_rgba(57,203,105,0.45)]' : i < step ? 'bg-primary/40' : 'bg-border']"></div>
+          <div v-for="i in 4" :key="i" :class="['h-0.5 transition-all duration-700 w-12', i === step ? 'bg-primary shadow-[0_0_10px_rgba(57,203,105,0.45)]' : i < step ? 'bg-primary/40' : 'bg-border']"></div>
         </div>
       </div>
 
@@ -245,7 +245,7 @@ const cancelBookingFlow = () => {
             No hay catálogo disponible
           </div>
           <button v-for="s in services" :key="s.id" @click="selectService(s.id, s.name, s.price)" class="w-full p-6 bg-surface border-b border-border hover:bg-surfaceHover hover:pl-8 transition-all duration-300 text-left flex justify-between items-center group cursor-pointer relative overflow-hidden rounded-lg">
-            <div class="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div class="absolute inset-0 bg-linear-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <div class="relative z-10">
               <h3 class="font-display text-lg mb-1 tracking-wide">{{ s.name }}</h3>
               <p class="text-xs text-textMuted uppercase tracking-widest font-light">{{ s.duration_min }} MIN</p>
@@ -257,7 +257,7 @@ const cancelBookingFlow = () => {
         <!-- Step 2: Staff -->
         <div v-else-if="step === 2" class="flex-1 flex flex-col gap-4">
           <button v-for="st in staff" :key="st.id" @click="selectStaff(st.id, st.user.name)" class="w-full p-6 bg-surface border border-border hover:border-primary/30 transition-all duration-500 text-left flex items-center gap-6 group cursor-pointer relative rounded-lg">
-            <div class="w-16 h-16 bg-gradient-to-tr from-surfaceHover to-border flex items-center justify-center font-display text-2xl text-brandDark group-hover:text-primary transition-colors border border-border shadow-sm">
+            <div class="w-16 h-16 bg-linear-to-tr from-surfaceHover to-border flex items-center justify-center font-display text-2xl text-brandDark group-hover:text-primary transition-colors border border-border shadow-sm">
               {{ st.user.name.charAt(0) }}
             </div>
             <div>
@@ -280,7 +280,7 @@ const cancelBookingFlow = () => {
           <div v-if="targetDate" class="animate-fade-in-up">
             <h3 class="font-display text-lg text-text mb-4 text-center border-b border-border pb-2">Horarios disponibles para {{ formatDate(targetDate) }}</h3>
             <div v-if="availableSlots.length === 0" class="flex-1 flex flex-col items-center justify-center text-textMuted py-8">
-              <div class="w-12 h-[1px] bg-primary/30 mb-6"></div>
+              <div class="w-12 h-px bg-primary/30 mb-6"></div>
               <p class="font-light tracking-widest text-sm uppercase">Sin disponibilidad</p>
             </div>
 
@@ -312,18 +312,18 @@ const cancelBookingFlow = () => {
             </div>
           </div>
 
-          <form @submit.prevent="submitBooking" class="space-y-8 mt-4">
-            <div class="relative">
-              <input id="clientName" v-model="booking.clientName" type="text" required class="peer w-full bg-transparent border-b border-border px-0 py-2 text-text placeholder-transparent focus:outline-none focus:border-primary transition-colors" placeholder="Nombre completo" />
-              <label for="clientName" class="absolute left-0 -top-3.5 text-xs text-textMuted transition-all peer-placeholder-shown:text-base peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-xs peer-focus:text-primary uppercase tracking-widest">Nombre completo</label>
+          <form @submit.prevent="submitBooking" class="space-y-9 mt-4">
+            <div class="relative pt-3">
+              <input id="clientName" v-model="booking.clientName" type="text" required class="peer w-full bg-transparent border-b border-border px-0 pt-6 pb-2 text-text placeholder-transparent focus:outline-none focus:border-primary transition-colors" placeholder="Nombre completo" />
+              <label for="clientName" class="absolute left-1 -top-1.5 bg-surface px-1 text-[10px] sm:text-xs text-textMuted transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:top-3 peer-focus:-top-1.5 peer-focus:text-[10px] peer-focus:text-primary uppercase tracking-[0.18em]">Nombre completo</label>
             </div>
-            <div class="relative">
-              <input id="clientEmail" v-model="booking.clientEmail" type="email" required class="peer w-full bg-transparent border-b border-border px-0 py-2 text-text placeholder-transparent focus:outline-none focus:border-primary transition-colors" placeholder="Correo de contacto" />
-              <label for="clientEmail" class="absolute left-0 -top-3.5 text-xs text-textMuted transition-all peer-placeholder-shown:text-base peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-xs peer-focus:text-primary uppercase tracking-widest">Correo de contacto</label>
+            <div class="relative pt-3">
+              <input id="clientEmail" v-model="booking.clientEmail" type="email" required class="peer w-full bg-transparent border-b border-border px-0 pt-6 pb-2 text-text placeholder-transparent focus:outline-none focus:border-primary transition-colors" placeholder="Correo de contacto" />
+              <label for="clientEmail" class="absolute left-1 -top-1.5 bg-surface px-1 text-[10px] sm:text-xs text-textMuted transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:top-3 peer-focus:-top-1.5 peer-focus:text-[10px] peer-focus:text-primary uppercase tracking-[0.18em]">Correo de contacto</label>
             </div>
-            <div class="relative">
-              <input id="clientPhone" v-model="booking.clientPhone" type="tel" class="peer w-full bg-transparent border-b border-border px-0 py-2 text-text placeholder-transparent focus:outline-none focus:border-primary transition-colors" placeholder="Teléfono (opcional)" />
-              <label for="clientPhone" class="absolute left-0 -top-3.5 text-xs text-textMuted transition-all peer-placeholder-shown:text-base peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-xs peer-focus:text-primary uppercase tracking-widest">Teléfono (opcional)</label>
+            <div class="relative pt-3">
+              <input id="clientPhone" v-model="booking.clientPhone" type="tel" class="peer w-full bg-transparent border-b border-border px-0 pt-6 pb-2 text-text placeholder-transparent focus:outline-none focus:border-primary transition-colors" placeholder="Teléfono (opcional)" />
+              <label for="clientPhone" class="absolute left-1 -top-1.5 bg-surface px-1 text-[10px] sm:text-xs text-textMuted transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:top-3 peer-focus:-top-1.5 peer-focus:text-[10px] peer-focus:text-primary uppercase tracking-[0.18em]">Teléfono (opcional)</label>
             </div>
 
             <div v-if="!booking.clientName && !booking.clientEmail" class="text-xs font-light text-textMuted text-center mt-2">
