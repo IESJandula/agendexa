@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -10,7 +11,7 @@ const router = useRouter();
 const handleLogin = async () => {
   errorMsg.value = '';
   try {
-    const res = await fetch('http://localhost:3000/auth/login', {
+    const res = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: email.value, password: password.value })
@@ -102,3 +103,4 @@ const handleLogin = async () => {
     </div>
   </div>
 </template>
+

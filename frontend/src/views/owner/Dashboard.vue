@@ -1,4 +1,5 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 import { ref, onMounted, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import CalendarPicker from '../../components/CalendarPicker.vue';
@@ -157,9 +158,9 @@ const fetchDashboardData = async () => {
     const headers = getAuthHeaders(token);
     
     const [appRes, srvRes, stfRes] = await Promise.all([
-      fetch('http://localhost:3000/appointments', { headers }),
-      fetch('http://localhost:3000/services', { headers }),
-      fetch('http://localhost:3000/staff', { headers })
+      fetch(`${API_BASE_URL}/appointments`, { headers }),
+      fetch(`${API_BASE_URL}/services`, { headers }),
+      fetch(`${API_BASE_URL}/staff`, { headers })
     ]);
     
     if (appRes.ok) {
@@ -183,7 +184,7 @@ const updateAppointmentStatus = async (id: string, status: string) => {
   const token = localStorage.getItem('token');
   if (!token) return;
   try {
-    await fetch(`http://localhost:3000/appointments/${id}/status`, {
+    await fetch(`${API_BASE_URL}/appointments/${id}/status`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', ...getAuthHeaders(token) },
       body: JSON.stringify({ status })
@@ -242,8 +243,8 @@ const handleSaveService = async () => {
   if (!token) return;
   try {
     const url = editingServiceId.value 
-      ? `http://localhost:3000/services/${editingServiceId.value}` 
-      : 'http://localhost:3000/services';
+      ? `${API_BASE_URL}/services/${editingServiceId.value}` 
+      : `${API_BASE_URL}/services`;
     const method = editingServiceId.value ? 'PATCH' : 'POST';
 
     const res = await fetch(url, {
@@ -284,8 +285,8 @@ const handleSaveStaff = async () => {
   try {
     const isEdit = !!editingStaffId.value;
     const url = isEdit 
-      ? `http://localhost:3000/staff/${editingStaffId.value}` 
-      : 'http://localhost:3000/staff';
+      ? `${API_BASE_URL}/staff/${editingStaffId.value}` 
+      : `${API_BASE_URL}/staff`;
     const method = isEdit ? 'PATCH' : 'POST';
 
     // Only send password if editing and it's filled, or if creating
@@ -364,7 +365,7 @@ const saveStaffSchedule = async () => {
   scheduleSaveMsg.value = 'Guardando...';
 
   try {
-    const res = await fetch(`http://localhost:3000/staff/${scheduleTargetStaffId.value}/schedule`, {
+    const res = await fetch(`${API_BASE_URL}/staff/${scheduleTargetStaffId.value}/schedule`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', ...getAuthHeaders(token) },
       body: JSON.stringify({ schedules: payload })
@@ -400,7 +401,7 @@ const handleDateOrStaffChange = async () => {
   }
   
   try {
-    const res = await fetch(`http://localhost:3000/public/${businessSlug.value}/availability?serviceId=${newBooking.value.serviceId}&staffId=${newBooking.value.staffId}&date=${newBooking.value.date}`);
+    const res = await fetch(`${API_BASE_URL}/public/${businessSlug.value}/availability?serviceId=${newBooking.value.serviceId}&staffId=${newBooking.value.staffId}&date=${newBooking.value.date}`);
     if (res.ok) {
       availableSlots.value = await res.json();
     } else {
@@ -415,7 +416,7 @@ const handleDateOrStaffChange = async () => {
 const handleMonthChange = async (year: number, month: number) => {
   if (!newBooking.value.serviceId || !newBooking.value.staffId) return;
   try {
-    const res = await fetch(`http://localhost:3000/public/${businessSlug.value}/availability/month?serviceId=${newBooking.value.serviceId}&staffId=${newBooking.value.staffId}&year=${year}&month=${month}`);
+    const res = await fetch(`${API_BASE_URL}/public/${businessSlug.value}/availability/month?serviceId=${newBooking.value.serviceId}&staffId=${newBooking.value.staffId}&year=${year}&month=${month}`);
     if (res.ok) {
       monthlyAvailability.value = await res.json();
     } else {
@@ -469,7 +470,7 @@ const handleSaveBooking = async () => {
       startDatetimeUtc: newBooking.value.time
     };
 
-    const res = await fetch(`http://localhost:3000/public/${businessSlug.value}/book`, {
+    const res = await fetch(`${API_BASE_URL}/public/${businessSlug.value}/book`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -526,7 +527,7 @@ const formatPrice = (value: number | string) => {
         <div class="h-[1px] w-12 bg-primary mt-4"></div>
       </div>
 
-      <nav class="flex md:flex-col gap-2 overflow-x-auto pb-4 md:pb-0">
+      <nav class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap-2 pb-4 md:pb-0">
         <button 
           @click="activeTab = 'appointments'" 
           :class="['px-6 py-4 text-left border-l-2 transition-all duration-500 uppercase tracking-widest text-xs font-semibold', activeTab === 'appointments' ? 'border-primary text-primary bg-primary/5' : 'border-transparent text-textMuted hover:text-brandDark hover:border-primary/30']">
@@ -549,7 +550,7 @@ const formatPrice = (value: number | string) => {
         </button>
       </nav>
 
-      <div class="mt-auto pt-16">
+      <div class="mt-6 md:mt-auto md:pt-16">
         <button @click="logout" class="w-full px-6 py-4 border border-border hover:border-primary/40 text-xs font-semibold tracking-widest uppercase text-textMuted hover:text-brandDark transition-all rounded-md bg-surface">
           Cerrar sesión
         </button>
@@ -576,7 +577,7 @@ const formatPrice = (value: number | string) => {
 
       <!-- Agenda View -->
       <div v-show="activeTab === 'appointments'" class="animate-fade-in-up delay-100 h-full flex flex-col">
-        <header class="flex justify-between items-end border-b border-border pb-6 mb-8">
+        <header class="flex flex-col sm:flex-row sm:justify-between sm:items-end border-b border-border pb-6 mb-8 gap-4">
           <div>
             <h3 class="font-display text-2xl text-white">Agenda por dia</h3>
             <p class="text-textMuted text-xs uppercase tracking-widest mt-2 font-light">Selecciona una fecha para ver sus horarios</p>
@@ -674,7 +675,7 @@ const formatPrice = (value: number | string) => {
 
       <!-- Services View -->
       <div v-show="activeTab === 'services'" class="animate-fade-in-up delay-100">
-        <header class="flex justify-between items-end border-b border-border pb-6 mb-8">
+        <header class="flex flex-col sm:flex-row sm:justify-between sm:items-end border-b border-border pb-6 mb-8 gap-4">
           <div>
             <h3 class="font-display text-2xl text-white">Portafolio de servicios</h3>
           </div>
@@ -702,7 +703,7 @@ const formatPrice = (value: number | string) => {
 
       <!-- Staff View -->
       <div v-show="activeTab === 'staff'" class="animate-fade-in-up delay-100">
-        <header class="flex justify-between items-end border-b border-border pb-6 mb-8">
+        <header class="flex flex-col sm:flex-row sm:justify-between sm:items-end border-b border-border pb-6 mb-8 gap-4">
           <div>
             <h3 class="font-display text-2xl text-white">Personal</h3>
           </div>
@@ -750,7 +751,7 @@ const formatPrice = (value: number | string) => {
             <div class="space-y-6 overflow-y-auto pr-1 pb-4">
               <input v-model="newService.name" type="text" placeholder="NOMBRE DEL SERVICIO" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
               <input v-model="newService.description" type="text" placeholder="DESCRIPCIÓN (OPCIONAL)" class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
-              <div class="grid grid-cols-2 gap-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <input v-model.number="newService.duration_min" type="number" placeholder="DURACIÓN (MIN)" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
                 <input v-model.number="newService.price" type="number" placeholder="PRECIO (EUR)" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
               </div>
@@ -884,7 +885,7 @@ const formatPrice = (value: number | string) => {
               <input v-model="newBooking.clientName" type="text" placeholder="NOMBRE DEL CLIENTE" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
               <input v-model="newBooking.clientEmail" type="email" placeholder="CORREO DEL CLIENTE" required class="input-premium bg-black/50 border-white/5 hover:border-primary/50 text-xs tracking-widest" />
               
-              <div class="grid grid-cols-2 gap-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <select v-model="newBooking.serviceId" @change="handleServiceStaffChange" required class="input-premium text-xs tracking-widest text-text">
                   <option value="" disabled selected>SERVICIO</option>
                   <option v-for="s in services" :key="s.id" :value="s.id">{{ s.name }}</option>
@@ -915,7 +916,7 @@ const formatPrice = (value: number | string) => {
                   <p class="font-light tracking-widest text-[10px] uppercase">Sin disponibilidad</p>
                 </div>
 
-                <div v-else class="grid grid-cols-3 gap-3 max-h-48 overflow-y-auto custom-scrollbar pr-2">
+                <div v-else class="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-48 overflow-y-auto custom-scrollbar pr-2">
                   <button 
                     v-for="slot in availableSlots" 
                     :key="slot" 
@@ -944,4 +945,5 @@ const formatPrice = (value: number | string) => {
 
   </div>
 </template>
+
 

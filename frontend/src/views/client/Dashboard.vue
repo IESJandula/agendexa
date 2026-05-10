@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -78,7 +79,7 @@ const handleSearch = () => {
   isSearching.value = true;
   searchTimeout = setTimeout(async () => {
     try {
-      const res = await fetch(`http://localhost:3000/public/businesses/search?q=${encodeURIComponent(searchQuery.value)}&by=${searchBy.value}`);
+      const res = await fetch(`${API_BASE_URL}/public/businesses/search?q=${encodeURIComponent(searchQuery.value)}&by=${searchBy.value}`);
       if (res.ok) {
         searchResults.value = await res.json();
       }
@@ -109,7 +110,7 @@ const fetchAppointments = async () => {
 
   loading.value = true;
   try {
-    const res = await fetch('http://localhost:3000/appointments', {
+    const res = await fetch(`${API_BASE_URL}/appointments`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (res.ok) {
@@ -148,7 +149,7 @@ const cancelAppointment = async (id: string) => {
   
   const token = localStorage.getItem('token');
   try {
-    const res = await fetch(`http://localhost:3000/appointments/${id}/status`, {
+    const res = await fetch(`${API_BASE_URL}/appointments/${id}/status`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({ status: 'CANCELLED' })
@@ -194,7 +195,7 @@ const translateStatus = (status: string) => {
         <div class="h-[1px] w-12 bg-primary mt-4"></div>
       </div>
 
-      <nav class="flex md:flex-col gap-2 overflow-x-auto pb-4 md:pb-0">
+      <nav class="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-1 gap-2 pb-4 md:pb-0">
         <button 
           @click="activeTab = 'upcoming'" 
           :class="['px-6 py-4 text-left border-l-2 transition-all duration-500 text-xs font-semibold tracking-widest uppercase', activeTab === 'upcoming' ? 'border-primary text-primary bg-primary/5' : 'border-transparent text-textMuted hover:text-brandDark hover:border-primary/30']">
@@ -212,7 +213,7 @@ const translateStatus = (status: string) => {
         </button>
       </nav>
 
-      <div class="mt-auto pt-16 flex flex-col gap-3">
+      <div class="mt-6 md:mt-auto md:pt-16 flex flex-col gap-3">
         <button @click="activeTab = 'discover'" class="w-full text-center px-6 py-4 bg-primary text-black font-semibold text-xs tracking-widest uppercase hover:bg-primaryHover transition-all">
           Reservar cita
         </button>
@@ -382,3 +383,4 @@ const translateStatus = (status: string) => {
     </main>
   </div>
 </template>
+

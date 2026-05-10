@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -60,7 +61,7 @@ onMounted(async () => {
   }
 
   try {
-    const res = await fetch(`http://localhost:3000/public/${slug}/services`);
+    const res = await fetch(`${API_BASE_URL}/public/${slug}/services`);
     if (res.ok) services.value = await res.json();
   } catch (error) {
     console.error(error);
@@ -71,7 +72,7 @@ const selectService = async (id: string, name: string, price: number) => {
   booking.value.serviceId = id;
   trackEvent('select_service', { service_id: id, service_name: name, price });
   try {
-    const res = await fetch(`http://localhost:3000/public/${slug}/staff?serviceId=${id}`);
+    const res = await fetch(`${API_BASE_URL}/public/${slug}/staff?serviceId=${id}`);
     if (res.ok) staff.value = await res.json();
     step.value = 2;
   } catch (error) {
@@ -93,7 +94,7 @@ const selectStaff = async (id: string, name: string) => {
 const fetchMonthlyAvailability = async (year: number, month: number) => {
   if (!booking.value.serviceId || !booking.value.staffId) return;
   try {
-    const res = await fetch(`http://localhost:3000/public/${slug}/availability/month?serviceId=${booking.value.serviceId}&staffId=${booking.value.staffId}&year=${year}&month=${month}`);
+    const res = await fetch(`${API_BASE_URL}/public/${slug}/availability/month?serviceId=${booking.value.serviceId}&staffId=${booking.value.staffId}&year=${year}&month=${month}`);
     if (res.ok) {
       monthlyAvailability.value = await res.json();
     } else {
@@ -107,7 +108,7 @@ const fetchMonthlyAvailability = async (year: number, month: number) => {
 const fetchAvailability = async () => {
   if (!booking.value.serviceId || !booking.value.staffId || !targetDate.value) return;
   try {
-    const res = await fetch(`http://localhost:3000/public/${slug}/availability?serviceId=${booking.value.serviceId}&staffId=${booking.value.staffId}&date=${targetDate.value}`);
+    const res = await fetch(`${API_BASE_URL}/public/${slug}/availability?serviceId=${booking.value.serviceId}&staffId=${booking.value.staffId}&date=${targetDate.value}`);
     if (res.ok) availableSlots.value = await res.json();
     else availableSlots.value = [];
   } catch (error) {
@@ -146,7 +147,7 @@ const submitBooking = async () => {
 
   try {
     trackEvent('attempt_booking', { service_id: booking.value.serviceId });
-    const res = await fetch(`http://localhost:3000/public/${slug}/book`, {
+    const res = await fetch(`${API_BASE_URL}/public/${slug}/book`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -240,7 +241,9 @@ const cancelBookingFlow = () => {
       <!-- Step 1: Services -->
       <transition name="fade" mode="out-in">
         <div v-if="step === 1" class="flex-1 flex flex-col gap-4">
-          <div v-if="services.length === 0" class="text-center font-light uppercase tracking-widest text-textMuted py-20 animate-pulse">Cargando catálogo...</div>
+          <div v-if="services.length === 0" class="text-center font-light uppercase tracking-widest text-textMuted py-20">
+            No hay catálogo disponible
+          </div>
           <button v-for="s in services" :key="s.id" @click="selectService(s.id, s.name, s.price)" class="w-full p-6 bg-surface border-b border-border hover:bg-surfaceHover hover:pl-8 transition-all duration-300 text-left flex justify-between items-center group cursor-pointer relative overflow-hidden rounded-lg">
             <div class="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <div class="relative z-10">
@@ -281,7 +284,7 @@ const cancelBookingFlow = () => {
               <p class="font-light tracking-widest text-sm uppercase">Sin disponibilidad</p>
             </div>
 
-            <div v-else class="grid grid-cols-3 gap-3 overflow-y-auto pr-2 pb-4 max-h-48 custom-scrollbar">
+            <div v-else class="grid grid-cols-2 sm:grid-cols-3 gap-3 overflow-y-auto pr-2 pb-4 max-h-48 custom-scrollbar">
               <button v-for="slot in availableSlots" :key="slot" @click="selectSlot(slot)" class="py-3 text-center border border-border bg-surface hover:bg-primary/10 hover:border-primary/50 transition-all duration-300 text-sm font-light tracking-widest rounded-md">
                 {{ formatTime(slot) }}
               </button>
@@ -361,3 +364,4 @@ const cancelBookingFlow = () => {
     </div>
   </div>
 </template>
+

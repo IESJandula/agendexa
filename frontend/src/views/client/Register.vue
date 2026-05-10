@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 
@@ -26,7 +27,7 @@ const handleRegister = async () => {
   }
 
   try {
-    const res = await fetch('http://localhost:3000/auth/register/client', {
+    const res = await fetch(`${API_BASE_URL}/auth/register/client`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: name.value, email: email.value, phone: normalizedPhone, password: password.value })
@@ -111,3 +112,4 @@ const handleRegister = async () => {
     </div>
   </div>
 </template>
+
