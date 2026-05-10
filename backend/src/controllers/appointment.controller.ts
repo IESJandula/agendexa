@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../index';
 import { AuthRequest } from '../middlewares/auth.middleware';
+import { applyNoShowPenalty, getBusinessSanctionSettings } from '../services/sanctions.service';
 
 const resolveBusinessId = (req: AuthRequest): string | null => {
     if (!req.user) return null;
@@ -74,9 +75,9 @@ export const updateAppointmentStatus = async (req: AuthRequest, res: Response) =
         const role = req.user?.role;
         const userId = req.user?.id;
         const { id } = req.params;
-        const { status } = req.body; // 'CONFIRMED', 'COMPLETED', 'CANCELLED'
+        const { status } = req.body; // 'CONFIRMED', 'COMPLETED', 'NO_SHOW', 'CANCELLED'
 
-        if (!['CONFIRMED', 'COMPLETED', 'CANCELLED'].includes(status)) {
+        if (!['CONFIRMED', 'COMPLETED', 'NO_SHOW', 'CANCELLED'].includes(status)) {
             return res.status(400).json({ error: 'Invalid status' });
         }
 
@@ -109,9 +110,60 @@ export const updateAppointmentStatus = async (req: AuthRequest, res: Response) =
             }
         }
 
+        if (appointment.status === status) {
+            return res.json(appointment);
+        }
+
+        const now = new Date();
+        if (['COMPLETED', 'NO_SHOW'].includes(status)) {
+            if (appointment.end_datetime_utc.getTime() > now.getTime()) {
+                return res.status(400).json({ error: 'Cannot mark future appointments' });
+            }
+        }
+
+        const business = await prisma.business.findUnique({ where: { id: appointment.business_id } });
+        if (!business) {
+            return res.status(404).json({ error: 'Business not found' });
+        }
+
+        const updateData: any = { status };
+
+        if (status === 'CANCELLED') {
+            updateData.cancelled_at = now;
+            const settings = getBusinessSanctionSettings(business);
+            const minutesToStart = (appointment.start_datetime_utc.getTime() - now.getTime()) / 60000;
+            const isLate = minutesToStart < settings.cancel_cutoff_minutes;
+            updateData.cancelled_late = isLate;
+
+            if (role === 'CLIENT' && isLate && appointment.client) {
+                await applyNoShowPenalty(prisma, {
+                    businessId: business.id,
+                    businessName: business.name,
+                    clientProfile: appointment.client,
+                    reason: 'LATE_CANCEL'
+                });
+            }
+        }
+
+        if (status === 'COMPLETED') {
+            updateData.completed_at = now;
+        }
+
+        if (status === 'NO_SHOW') {
+            updateData.no_show_at = now;
+            if (appointment.client) {
+                await applyNoShowPenalty(prisma, {
+                    businessId: business.id,
+                    businessName: business.name,
+                    clientProfile: appointment.client,
+                    reason: 'NO_SHOW'
+                });
+            }
+        }
+
         const updated = await prisma.appointment.update({
             where: { id },
-            data: { status }
+            data: updateData
         });
 
         return res.json(updated);

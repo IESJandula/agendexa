@@ -11,6 +11,8 @@ const services = ref<any[]>([]);
 const staff = ref<any[]>([]);
 const appointments = ref<any[]>([]);
 const loading = ref(true);
+const sanctionsLoading = ref(false);
+const sanctionsSaveMsg = ref('');
 const historyFilterType = ref<'days' | 'weeks'>('days');
 const historyFilterValue = ref(7);
 const businessSlug = ref('pelu');
@@ -83,6 +85,54 @@ const monthlyAvailability = ref<Record<string, boolean>>({});
 const todayIso = new Date().toISOString().split('T')[0] ?? '';
 const agendaDate = ref<string>(todayIso);
 const agendaAvailabilityMap = ref<Record<string, boolean>>({});
+
+type SanctionStep = { count: number; action: string };
+type SanctionSettings = { cancel_cutoff_minutes: number; steps: SanctionStep[] };
+
+const sanctionsSettings = ref<SanctionSettings | null>(null);
+const sanctionsClients = ref<any[]>([]);
+
+const SANCTION_ACTIONS = [
+  { value: 'NONE', label: 'No hacer nada' },
+  { value: 'WARNING', label: 'Amonestacion' },
+  { value: 'CHARGE_NEXT', label: 'Sancion economica' },
+  { value: 'BAN', label: 'Banear' }
+];
+
+const normalizeSanctionSteps = (steps: SanctionStep[]) => {
+  const sorted = [...(steps || [])]
+    .sort((a, b) => Number(a.count) - Number(b.count))
+    .map((step, index) => ({
+      count: index + 1,
+      action: step?.action || 'NONE'
+    }));
+
+  const normalized: SanctionStep[] = [];
+  for (const step of sorted) {
+    normalized.push(step);
+    if (step.action === 'BAN') break;
+  }
+
+  return normalized.length > 0 ? normalized : [{ count: 1, action: 'NONE' }];
+};
+
+const hasBanStep = computed(() => {
+  if (!sanctionsSettings.value) return false;
+  return sanctionsSettings.value.steps.some((step) => step.action === 'BAN');
+});
+
+const addSanctionStep = () => {
+  if (!sanctionsSettings.value || hasBanStep.value) return;
+  const nextCount = sanctionsSettings.value.steps.length + 1;
+  sanctionsSettings.value.steps.push({ count: nextCount, action: 'NONE' });
+};
+
+const removeSanctionStepByIndex = (index: number) => {
+  if (!sanctionsSettings.value) return;
+  if (sanctionsSettings.value.steps.length <= 1) return;
+  sanctionsSettings.value.steps.splice(index, 1);
+  sanctionsSettings.value.steps = normalizeSanctionSteps(sanctionsSettings.value.steps);
+};
 
 const toMinutes = (time: string) => {
   const [h = 0, m = 0] = time.split(':').map((part) => Number(part));
@@ -180,6 +230,61 @@ const fetchDashboardData = async () => {
   }
 };
 
+const fetchSanctionsData = async () => {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+  if (isSuperadminView && !selectedBusinessId) return;
+
+  sanctionsLoading.value = true;
+  sanctionsSaveMsg.value = '';
+  try {
+    const headers = getAuthHeaders(token);
+    const [settingsRes, clientsRes] = await Promise.all([
+      fetch(`${API_BASE_URL}/sanctions/settings`, { headers }),
+      fetch(`${API_BASE_URL}/sanctions/clients`, { headers })
+    ]);
+
+    if (settingsRes.ok) {
+      const settings = await settingsRes.json();
+      sanctionsSettings.value = {
+        ...settings,
+        steps: normalizeSanctionSteps(settings.steps || [])
+      };
+    }
+    if (clientsRes.ok) {
+      sanctionsClients.value = await clientsRes.json();
+    }
+  } catch (err) {
+    console.error(err);
+  } finally {
+    sanctionsLoading.value = false;
+  }
+};
+
+const saveSanctionSettings = async () => {
+  const token = localStorage.getItem('token');
+  if (!token || !sanctionsSettings.value) return;
+
+  sanctionsSaveMsg.value = '';
+  try {
+    sanctionsSettings.value.steps = normalizeSanctionSteps(sanctionsSettings.value.steps);
+    const res = await fetch(`${API_BASE_URL}/sanctions/settings`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...getAuthHeaders(token) },
+      body: JSON.stringify(sanctionsSettings.value)
+    });
+    if (res.ok) {
+      sanctionsSettings.value = await res.json();
+      sanctionsSaveMsg.value = 'Sanciones actualizadas.';
+      fetchSanctionsData();
+    } else {
+      sanctionsSaveMsg.value = 'Error al guardar sanciones.';
+    }
+  } catch (err) {
+    sanctionsSaveMsg.value = 'Error de red al guardar sanciones.';
+  }
+};
+
 const updateAppointmentStatus = async (id: string, status: string) => {
   const token = localStorage.getItem('token');
   if (!token) return;
@@ -197,6 +302,7 @@ const updateAppointmentStatus = async (id: string, status: string) => {
 
 onMounted(() => {
   fetchDashboardData();
+  fetchSanctionsData();
 });
 
 const historyAppointments = computed(() => {
@@ -208,11 +314,20 @@ const historyAppointments = computed(() => {
   return appointments.value
     .filter((a) => {
       const date = new Date(a.start_datetime_utc);
-      const isPast = date < now || ['COMPLETED', 'CANCELLED'].includes(a.status);
+      const isPast = date < now || ['COMPLETED', 'CANCELLED', 'NO_SHOW'].includes(a.status);
       return isPast && date >= from && date <= now;
     })
     .sort((a, b) => new Date(b.start_datetime_utc).getTime() - new Date(a.start_datetime_utc).getTime());
 });
+
+const isPastAppointment = (appointment: any) => new Date(appointment.end_datetime_utc).getTime() <= Date.now();
+
+const translateSanctionAction = (action: string) => {
+  if (action === 'WARNING') return 'Amonestacion';
+  if (action === 'CHARGE_NEXT') return 'Sancion economica';
+  if (action === 'BAN') return 'Baneo';
+  return 'Sin accion';
+};
 
 const agendaAppointments = computed(() => {
   return appointments.value
@@ -500,6 +615,7 @@ const translateStatus = (status: string) => {
   if (status === 'PENDING_CONFIRMATION') return 'Pendiente de confirmacion';
   if (status === 'CONFIRMED') return 'Confirmada';
   if (status === 'COMPLETED') return 'Completada';
+  if (status === 'NO_SHOW') return 'No asistio';
   if (status === 'CANCELLED') return 'Cancelada';
   return status;
 };
@@ -547,6 +663,11 @@ const formatPrice = (value: number | string) => {
           @click="activeTab = 'staff'" 
           :class="['px-6 py-4 text-left border-l-2 transition-all duration-500 uppercase tracking-widest text-xs font-semibold', activeTab === 'staff' ? 'border-primary text-primary bg-primary/5' : 'border-transparent text-textMuted hover:text-brandDark hover:border-primary/30']">
           Personal
+        </button>
+        <button 
+          @click="activeTab = 'sanctions'" 
+          :class="['px-6 py-4 text-left border-l-2 transition-all duration-500 uppercase tracking-widest text-xs font-semibold', activeTab === 'sanctions' ? 'border-primary text-primary bg-primary/5' : 'border-transparent text-textMuted hover:text-brandDark hover:border-primary/30']">
+          Sanciones
         </button>
       </nav>
 
@@ -623,10 +744,13 @@ const formatPrice = (value: number | string) => {
                   <span :class="['text-xs uppercase tracking-[0.2em] font-medium border-b pb-1', app.status === 'PENDING_CONFIRMATION' ? 'text-amber-400 border-amber-400/40' : app.status === 'CONFIRMED' ? 'text-primary border-primary/30' : app.status === 'COMPLETED' ? 'text-neutral-500 border-neutral-700' : 'text-red-500/70 border-red-900/50']">
                     {{ translateStatus(app.status) }}
                   </span>
-                  <button v-if="app.status === 'CONFIRMED'" @click="updateAppointmentStatus(app.id, 'COMPLETED')" class="w-9 h-9 border border-border hover:border-primary text-textMuted hover:text-primary flex items-center justify-center transition-all bg-surface rounded-md" title="Marcar como completada">
+                  <button v-if="app.status === 'CONFIRMED' && isPastAppointment(app)" @click="updateAppointmentStatus(app.id, 'COMPLETED')" class="w-9 h-9 border border-border hover:border-primary text-textMuted hover:text-primary flex items-center justify-center transition-all bg-surface rounded-md" title="Marcar como completada">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M5 13l4 4L19 7" /></svg>
                   </button>
-                  <button v-if="['PENDING_CONFIRMATION', 'CONFIRMED'].includes(app.status)" @click="updateAppointmentStatus(app.id, 'CANCELLED')" class="w-9 h-9 border border-border hover:border-red-400 text-textMuted hover:text-red-600 flex items-center justify-center transition-all bg-surface rounded-md" title="Cancelar">
+                  <button v-if="app.status === 'CONFIRMED' && isPastAppointment(app)" @click="updateAppointmentStatus(app.id, 'NO_SHOW')" class="w-9 h-9 border border-border hover:border-red-400 text-textMuted hover:text-red-600 flex items-center justify-center transition-all bg-surface rounded-md" title="Marcar no asistencia">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                  <button v-if="['PENDING_CONFIRMATION', 'CONFIRMED'].includes(app.status) && !isPastAppointment(app)" @click="updateAppointmentStatus(app.id, 'CANCELLED')" class="w-9 h-9 border border-border hover:border-red-400 text-textMuted hover:text-red-600 flex items-center justify-center transition-all bg-surface rounded-md" title="Cancelar">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M6 18L18 6M6 6l12 12" /></svg>
                   </button>
                 </div>
@@ -738,6 +862,104 @@ const formatPrice = (value: number | string) => {
               <button type="button" @click="openScheduleModal(st)" class="btn-primary px-4 py-2 tracking-widest text-[10px]">Horario</button>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Sanctions View -->
+      <div v-show="activeTab === 'sanctions'" class="animate-fade-in-up delay-100">
+        <header class="flex flex-col sm:flex-row sm:items-end sm:justify-between border-b border-border pb-6 mb-8 gap-4">
+          <div>
+            <h3 class="font-display text-2xl text-white">Sanciones</h3>
+            <p class="text-textMuted text-xs uppercase tracking-widest mt-2 font-light">Configura cancelaciones y sanciones automaticas</p>
+          </div>
+          <button @click="fetchSanctionsData" class="btn-secondary px-4 py-2 text-[10px] tracking-widest">Actualizar</button>
+        </header>
+
+        <div v-if="sanctionsLoading" class="flex flex-col items-center justify-center py-20">
+          <div class="w-12 h-12 border border-t-primary border-r-transparent border-b-transparent border-l-transparent animate-spin rounded-full mb-4"></div>
+          <p class="text-primary tracking-widest uppercase text-xs">Cargando sanciones</p>
+        </div>
+
+        <div v-else class="space-y-8">
+          <section class="bg-surface border border-border rounded-xl p-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+              <div>
+                <h4 class="font-display text-xl text-white">Politica de cancelacion</h4>
+                <p class="text-textMuted text-xs uppercase tracking-widest mt-2">Define el limite de cancelacion sin sancion</p>
+              </div>
+              <button @click="saveSanctionSettings" class="btn-primary px-6 py-2 text-[10px] tracking-widest">Guardar</button>
+            </div>
+
+            <div v-if="sanctionsSettings" class="space-y-6">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-[10px] uppercase tracking-widest text-textMuted mb-2">Minutos minimos para cancelar</label>
+                  <input v-model.number="sanctionsSettings.cancel_cutoff_minutes" type="number" min="0" class="input-premium py-2 px-3 text-xs" />
+                </div>
+              </div>
+
+              <div>
+                <div class="flex items-center justify-between gap-3 mb-4">
+                  <label class="block text-[10px] uppercase tracking-widest text-textMuted">Escalado de sanciones</label>
+                  <button
+                    type="button"
+                    @click="addSanctionStep"
+                    :disabled="hasBanStep"
+                    class="btn-secondary px-4 py-2 text-[10px] tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Anadir falta
+                  </button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div v-for="(step, index) in sanctionsSettings.steps" :key="step.count" class="p-4 border border-border rounded-lg bg-surfaceHover/30">
+                    <div class="flex items-center justify-between gap-2 mb-3">
+                      <p class="text-xs uppercase tracking-widest text-textMuted">Falta #{{ step.count }}</p>
+                      <button
+                        type="button"
+                        @click="removeSanctionStepByIndex(index)"
+                        :disabled="sanctionsSettings.steps.length <= 1"
+                        class="btn-secondary px-3 py-1 text-[10px] tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Quitar
+                      </button>
+                    </div>
+                    <select v-model="step.action" class="input-premium py-2 px-3 text-xs">
+                      <option v-for="action in SANCTION_ACTIONS" :key="action.value" :value="action.value">{{ action.label }}</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <p v-if="sanctionsSaveMsg" class="text-xs uppercase tracking-widest text-primary">{{ sanctionsSaveMsg }}</p>
+            </div>
+          </section>
+
+          <section class="bg-surface border border-border rounded-xl p-6">
+            <div class="flex items-center justify-between mb-6">
+              <div>
+                <h4 class="font-display text-xl text-white">Clientes sancionados</h4>
+                <p class="text-textMuted text-xs uppercase tracking-widest mt-2">Clientes con faltas registradas</p>
+              </div>
+            </div>
+
+            <div v-if="sanctionsClients.length === 0" class="py-12 text-center text-textMuted text-sm">
+              No hay sanciones activas en este negocio.
+            </div>
+
+            <div v-else class="space-y-3">
+              <div v-for="client in sanctionsClients" :key="client.id" class="p-4 border border-border rounded-lg bg-surfaceHover/30 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                  <p class="text-xs uppercase tracking-widest text-textMuted">{{ client.user?.name || 'Cliente' }}</p>
+                  <p class="text-sm text-text">{{ client.user?.email }}</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-4 text-xs uppercase tracking-widest text-textMuted">
+                  <span>Faltas: <span class="text-primary">{{ client.no_show_count }}</span></span>
+                  <span>Ultima sancion: <span class="text-primary">{{ translateSanctionAction(client.last_sanction_action) }}</span></span>
+                  <span v-if="client.is_banned" class="text-red-400">BANEADO</span>
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
 

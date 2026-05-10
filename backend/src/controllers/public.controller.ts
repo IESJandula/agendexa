@@ -492,6 +492,10 @@ export const bookAppointment = async (req: AuthRequest, res: Response) => {
                 });
             }
 
+            if (clientProfile.is_banned) {
+                throw new Error('Client is banned');
+            }
+
             const newAppt = await tx.appointment.create({
                 data: {
                     business_id: business.id,
@@ -538,6 +542,9 @@ export const bookAppointment = async (req: AuthRequest, res: Response) => {
     } catch (error: any) {
         if (error.message.includes('overlap')) {
             return res.status(409).json({ error: error.message });
+        }
+        if (error.message.includes('Client is banned')) {
+            return res.status(403).json({ error: 'Tu cuenta esta bloqueada para reservar en este negocio' });
         }
         if (error.message.includes('Client account not found')) {
             return res.status(400).json({ error: 'No se encontro una cuenta de cliente valida para el correo indicado' });

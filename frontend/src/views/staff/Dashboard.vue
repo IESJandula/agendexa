@@ -165,7 +165,7 @@ const agendaAppointments = computed(() => {
 const pastAppointments = computed(() => {
   const now = new Date();
   return appointments.value
-    .filter((a) => new Date(a.start_datetime_utc) < now || ['COMPLETED', 'CANCELLED'].includes(a.status))
+    .filter((a) => new Date(a.start_datetime_utc) < now || ['COMPLETED', 'CANCELLED', 'NO_SHOW'].includes(a.status))
     .sort((a, b) => new Date(b.start_datetime_utc).getTime() - new Date(a.start_datetime_utc).getTime());
 });
 
@@ -365,9 +365,12 @@ const translateStatus = (status: string) => {
   if (status === 'PENDING_CONFIRMATION') return 'Pendiente de confirmacion';
   if (status === 'CONFIRMED') return 'Confirmada';
   if (status === 'COMPLETED') return 'Completada';
+  if (status === 'NO_SHOW') return 'No asistio';
   if (status === 'CANCELLED') return 'Cancelada';
   return status;
 };
+
+const isPastAppointment = (appointment: any) => new Date(appointment.end_datetime_utc).getTime() <= Date.now();
 
 const formatTime = (timeStr: string) => {
   return new Date(timeStr).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
@@ -464,10 +467,13 @@ const formatDate = (dateStr: string) => {
                   <span :class="['text-xs uppercase tracking-[0.2em] font-medium border-b pb-1', appt.status === 'PENDING_CONFIRMATION' ? 'text-amber-400 border-amber-400/40' : appt.status === 'CONFIRMED' ? 'text-primary border-primary/30' : appt.status === 'COMPLETED' ? 'text-neutral-500 border-neutral-700' : 'text-red-500/70 border-red-900/50']">
                     {{ translateStatus(appt.status) }}
                   </span>
-                  <button v-if="appt.status === 'CONFIRMED'" @click="updateAppointmentStatus(appt.id, 'COMPLETED')" class="w-9 h-9 border border-border hover:border-primary text-textMuted hover:text-primary flex items-center justify-center transition-all bg-surface rounded-md" title="Marcar como completada">
+                  <button v-if="appt.status === 'CONFIRMED' && isPastAppointment(appt)" @click="updateAppointmentStatus(appt.id, 'COMPLETED')" class="w-9 h-9 border border-border hover:border-primary text-textMuted hover:text-primary flex items-center justify-center transition-all bg-surface rounded-md" title="Marcar como completada">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M5 13l4 4L19 7" /></svg>
                   </button>
-                  <button v-if="['PENDING_CONFIRMATION', 'CONFIRMED'].includes(appt.status)" @click="updateAppointmentStatus(appt.id, 'CANCELLED')" class="w-9 h-9 border border-border hover:border-red-400 text-textMuted hover:text-red-600 flex items-center justify-center transition-all bg-surface rounded-md" title="Cancelar">
+                  <button v-if="appt.status === 'CONFIRMED' && isPastAppointment(appt)" @click="updateAppointmentStatus(appt.id, 'NO_SHOW')" class="w-9 h-9 border border-border hover:border-red-400 text-textMuted hover:text-red-600 flex items-center justify-center transition-all bg-surface rounded-md" title="Marcar no asistencia">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                  <button v-if="['PENDING_CONFIRMATION', 'CONFIRMED'].includes(appt.status) && !isPastAppointment(appt)" @click="updateAppointmentStatus(appt.id, 'CANCELLED')" class="w-9 h-9 border border-border hover:border-red-400 text-textMuted hover:text-red-600 flex items-center justify-center transition-all bg-surface rounded-md" title="Cancelar">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M6 18L18 6M6 6l12 12" /></svg>
                   </button>
                 </div>

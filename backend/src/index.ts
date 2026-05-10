@@ -10,6 +10,8 @@ import serviceRoutes from './routes/service.routes';
 import staffRoutes from './routes/staff.routes';
 import publicRoutes from './routes/public.routes';
 import appointmentRoutes from './routes/appointment.routes';
+import sanctionsRoutes from './routes/sanctions.routes';
+import notificationsRoutes from './routes/notifications.routes';
 import { startAppointmentReminderJob } from './services/appointment-reminder.service';
 
 dotenv.config();
@@ -27,6 +29,8 @@ app.use('/services', serviceRoutes);
 app.use('/staff', staffRoutes);
 app.use('/public', publicRoutes);
 app.use('/appointments', appointmentRoutes);
+app.use('/sanctions', sanctionsRoutes);
+app.use('/notifications', notificationsRoutes);
 
 app.get('/health', (req, res) => {
     res.json({ status: 'ok', time: new Date().toISOString() });

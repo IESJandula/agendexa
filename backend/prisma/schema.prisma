@@ -18,6 +18,7 @@ model User {
   clientProfiles ClientProfile[]
   ownerProfiles  OwnerProfile[]
   staffProfiles  StaffProfile[]
+  notifications  ClientNotification[]
 }
 
 model Business {
@@ -35,6 +36,7 @@ model Business {
   ownerProfiles         OwnerProfile[]
   services              Service[]
   staffProfiles         StaffProfile[]
+  notifications         ClientNotification[]
 }
 
 model OwnerProfile {
@@ -72,6 +74,11 @@ model ClientProfile {
   user_id      String
   business_id  String
   notes        String?       @db.Text
+  no_show_count Int          @default(0)
+  last_no_show_at DateTime?
+  last_sanction_action String?
+  last_sanction_at DateTime?
+  is_banned    Boolean       @default(false)
   created_at   DateTime      @default(now())
   appointments Appointment[]
   business     Business      @relation(fields: [business_id], references: [id])
@@ -140,6 +147,10 @@ model Appointment {
   confirmation_expires_at DateTime?
   confirmed_at       DateTime?
   reminder_sent_at   DateTime?
+  cancelled_at       DateTime?
+  cancelled_late     Boolean           @default(false)
+  completed_at       DateTime?
+  no_show_at          DateTime?
   business           Business          @relation(fields: [business_id], references: [id])
   client             ClientProfile?    @relation(fields: [client_id], references: [id])
   service            Service           @relation(fields: [service_id], references: [id])
@@ -149,6 +160,22 @@ model Appointment {
   @@index([business_id], map: "Appointment_business_id_fkey")
   @@index([client_id], map: "Appointment_client_id_fkey")
   @@index([service_id], map: "Appointment_service_id_fkey")
+}
+
+model ClientNotification {
+  id          String   @id @default(uuid())
+  user_id     String
+  business_id String
+  type        String
+  title       String?
+  message     String   @db.Text
+  created_at  DateTime @default(now())
+  read_at     DateTime?
+  user        User     @relation(fields: [user_id], references: [id])
+  business    Business @relation(fields: [business_id], references: [id])
+
+  @@index([user_id], map: "ClientNotification_user_id_fkey")
+  @@index([business_id], map: "ClientNotification_business_id_fkey")
 }
 
 enum Role {
@@ -162,5 +189,6 @@ enum AppointmentStatus {
   PENDING_CONFIRMATION
   CONFIRMED
   COMPLETED
+  NO_SHOW
   CANCELLED
 }

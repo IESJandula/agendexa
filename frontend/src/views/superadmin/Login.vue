@@ -19,8 +19,17 @@ const handleLogin = async () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: email.value, password: password.value })
     });
-    
-    const data = await res.json();
+
+    const raw = await res.text();
+    let data: any = {};
+    if (raw) {
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        throw new Error('Respuesta inválida del servidor. Revisa VITE_API_BASE_URL en frontend/.env');
+      }
+    }
+
     if (!res.ok) throw new Error(data.error || 'Autenticación denegada');
     if (data.user.role !== 'SUPERADMIN') throw new Error('Nivel de acceso insuficiente');
     

@@ -15,7 +15,9 @@ const loading = ref(true);
 const appointments = ref<any[]>([]);
 const userName = ref('');
 const errorMsg = ref('');
-const activeTab = ref<'upcoming' | 'past' | 'discover'>('upcoming');
+const activeTab = ref<'upcoming' | 'past' | 'discover' | 'notifications'>('upcoming');
+const notifications = ref<any[]>([]);
+const notificationsLoading = ref(false);
 
 const searchQuery = ref('');
 const searchBy = ref<'name' | 'location'>('name');
@@ -125,9 +127,29 @@ const fetchAppointments = async () => {
   }
 };
 
+const fetchNotifications = async () => {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+
+  notificationsLoading.value = true;
+  try {
+    const res = await fetch(`${API_BASE_URL}/notifications`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.ok) {
+      notifications.value = await res.json();
+    }
+  } catch (err) {
+    console.error(err);
+  } finally {
+    notificationsLoading.value = false;
+  }
+};
+
 onMounted(() => {
   loadFavorites();
   fetchAppointments();
+  fetchNotifications();
 });
 
 const upcomingAppointments = computed(() => {
@@ -140,7 +162,7 @@ const upcomingAppointments = computed(() => {
 const pastAppointments = computed(() => {
   const now = new Date();
   return appointments.value
-    .filter(a => new Date(a.start_datetime_utc) < now || ['COMPLETED', 'CANCELLED'].includes(a.status))
+    .filter(a => new Date(a.start_datetime_utc) < now || ['COMPLETED', 'CANCELLED', 'NO_SHOW'].includes(a.status))
     .sort((a, b) => new Date(b.start_datetime_utc).getTime() - new Date(a.start_datetime_utc).getTime());
 });
 
@@ -176,6 +198,7 @@ const translateStatus = (status: string) => {
   if (status === 'PENDING_CONFIRMATION') return 'Pendiente de confirmacion';
   if (status === 'CONFIRMED') return 'Confirmada';
   if (status === 'COMPLETED') return 'Completada';
+  if (status === 'NO_SHOW') return 'No asistio';
   if (status === 'CANCELLED') return 'Cancelada';
   return status;
 };
@@ -195,7 +218,7 @@ const translateStatus = (status: string) => {
         <div class="h-[1px] w-12 bg-primary mt-4"></div>
       </div>
 
-      <nav class="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-1 gap-2 pb-4 md:pb-0">
+      <nav class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap-2 pb-4 md:pb-0">
         <button 
           @click="activeTab = 'upcoming'" 
           :class="['px-6 py-4 text-left border-l-2 transition-all duration-500 text-xs font-semibold tracking-widest uppercase', activeTab === 'upcoming' ? 'border-primary text-primary bg-primary/5' : 'border-transparent text-textMuted hover:text-brandDark hover:border-primary/30']">
@@ -210,6 +233,11 @@ const translateStatus = (status: string) => {
           @click="activeTab = 'discover'"
           :class="['px-6 py-4 text-left border-l-2 transition-all duration-500 text-xs font-semibold tracking-widest uppercase', activeTab === 'discover' ? 'border-primary text-primary bg-primary/5' : 'border-transparent text-textMuted hover:text-brandDark hover:border-primary/30']">
           Reservar
+        </button>
+        <button
+          @click="activeTab = 'notifications'"
+          :class="['px-6 py-4 text-left border-l-2 transition-all duration-500 text-xs font-semibold tracking-widest uppercase', activeTab === 'notifications' ? 'border-primary text-primary bg-primary/5' : 'border-transparent text-textMuted hover:text-brandDark hover:border-primary/30']">
+          Notificaciones
         </button>
       </nav>
 
@@ -378,6 +406,30 @@ const translateStatus = (status: string) => {
             </article>
           </div>
         </section>
+      </div>
+
+      <div v-show="activeTab === 'notifications'" class="animate-fade-in-up delay-100 flex flex-col h-full">
+        <header class="border-b border-border pb-6 mb-8">
+          <h3 class="font-display text-2xl text-text">Notificaciones</h3>
+          <p class="text-xs text-textMuted uppercase tracking-widest mt-2">Avisos sobre tus citas</p>
+        </header>
+
+        <div v-if="notificationsLoading" class="flex flex-col items-center justify-center py-20">
+          <div class="w-8 h-8 border border-t-primary border-r-transparent border-b-transparent border-l-transparent animate-spin rounded-full mb-4"></div>
+          <p class="text-primary font-light tracking-[0.3em] text-[10px] uppercase">Cargando...</p>
+        </div>
+
+        <div v-else-if="notifications.length === 0" class="flex-1 flex flex-col items-center justify-center py-20 border border-border bg-surface text-center rounded-xl">
+          <p class="text-textMuted font-light italic text-sm">No tienes notificaciones.</p>
+        </div>
+
+        <div v-else class="space-y-4">
+          <div v-for="note in notifications" :key="note.id" class="p-6 bg-surface border border-border rounded-xl">
+            <p class="text-[10px] text-textMuted uppercase tracking-[0.2em] mb-1">{{ new Date(note.created_at).toLocaleDateString('es-ES') }}</p>
+            <h4 class="font-display text-lg text-text mb-2">{{ note.title || 'Aviso' }}</h4>
+            <p class="text-sm text-textMuted font-light">{{ note.message }}</p>
+          </div>
+        </div>
       </div>
 
     </main>
